@@ -1,0 +1,8 @@
+﻿A list of all Spawn Tables:
+Environment followed by difficulty
+
+1. Shore-1
+2. Dungeon-1
+3. Cave-1
+4. Forest-1
+5. Field-1

@@ -1,0 +1,20 @@
+﻿List of Damage/Status Effect Proper Names
+
+Status Effects:
+1. Poison : Green*Poisoned
+2. Restraint : Restrained
+3. Stoning : Gray*Stoned
+4. Polymorph : Purple*Polymorphed
+
+Damage Types:
+1. Piercing
+2. Slashing
+3. Bludgeoning
+4. Fire
+5. Frost
+6. Lightning
+
+Item Types:
+1. Offense
+2. Movement
+3. Support

@@ -13,7 +13,8 @@ namespace The_Ruins_of_Ipsus
             mapHeight = height;
             tiles = new Traversable[width, height];
             sfx = new Draw[width, height];
-            depth = -1;
+            depth = 0;
+            difficulty = 0;
 
             for (int x = 0; x < mapWidth; x++)
             {
@@ -23,13 +24,14 @@ namespace The_Ruins_of_Ipsus
                 }
             }
         }
-        public World(int width, int height, int _depth, int _random)
+        public World(int width, int height, int _depth, int _random, int _difficulty)
         {
             mapWidth = width;
             mapHeight = height;
             tiles = new Traversable[width, height];
             sfx = new Draw[width, height];
             depth = _depth;
+            difficulty = _difficulty;
             random = new Random();
 
             //for (int x = 0; x < mapWidth; x++)
@@ -40,7 +42,7 @@ namespace The_Ruins_of_Ipsus
             //    }
             //}
 
-            LoadSavedFloor(_random, testing);
+            LoadSavedFloor(_random);
         }
         public static void LoadSeedState(bool random = true, int _seed = 0)
         {
@@ -50,10 +52,10 @@ namespace The_Ruins_of_Ipsus
             seedInt = _random;
             seed = new Random(_random);
         }
-        public static void LoadSavedFloor(int seed, bool testing)
+        public static void LoadSavedFloor(int seed)
         {
             LoadSeedState(false, seed);
-            FloorSwitchCase(testing);
+            FloorSwitchCase();
         }
         public static void GenerateNewFloor(bool up)
         {
@@ -62,8 +64,10 @@ namespace The_Ruins_of_Ipsus
             EntityManager.AddEntity(Program.player, false);
             TurnManager.AddActor(Program.player.GetComponent<TurnFunction>());
             if (up) { depth++; } else { depth--; }
+            difficulty++;
 
-            FloorSwitchCase(testing);
+            FloorSwitchCase();
+            EntityVerificationCheck();
 
             List<Entity> tiles = new List<Entity>();
             foreach (Traversable tile in World.tiles) { if (tile != null && tile.entity.GetComponent<Traversable>().terrainType != 0) { tiles.Add(tile.entity); } }
@@ -73,44 +77,47 @@ namespace The_Ruins_of_Ipsus
             Program.player.GetComponent<Vector2>().y = vector2.y;
             Renderer.MoveCamera(vector2);
             ShadowcastFOV.Compute(vector2, Program.player.GetComponent<Stats>().sight);
-
-            //PopulateFloor(testing);
+            Renderer.DrawMapToScreen();
         }
-        public static void FloorSwitchCase(bool testing)
+        public static void FloorSwitchCase()
         {
-            if (testing)
+            switch (depth)
             {
-                new TestingGenerator().CreateMap(mapWidth, mapHeight, 1);
-            }
-            else
-            {
-                switch (depth)
-                {
-                    case -1: { new CaveGenerator().CreateMap(mapWidth, mapHeight, 1); break; }
-                    case 0: { new VerdantCaveGenerator().CreateMap(mapWidth, mapHeight, 1); break; }
-                    case 1: { new DungeonGenerator().CreateMap(mapWidth, mapHeight, 1); break; }
-                }
+                case 0: { new VerdantCaveGenerator().CreateMap(mapWidth, mapHeight, 1); break; }
+                case 1: { new DungeonGenerator().CreateMap(mapWidth, mapHeight, 1); break; }
+                case 2: { new VerdantCaveGenerator().CreateMap(mapWidth, mapHeight, 1); break; }
             }
         }
-        public static void PopulateFloor(bool testing)
+        public static void EntityVerificationCheck()
         {
-            if (testing)
+            foreach (Traversable traversable in tiles)
             {
-
-            }
-            else
-            {
-                int goal = seed.Next(5, 10);
-
-                for (int i = 0; i < goal; i++)
+                if (traversable != null)
                 {
-                    switch (depth)
+                    Vector2 start = traversable.entity.GetComponent<Vector2>();
+                    if (traversable.actorLayer != null) 
                     {
-                        case -3: { EntityManager.CreateEntity(new Vector2(0, 0), SpawnTableManager.RetrieveRandomEntity("Shore-1", true), true, true); break; }
-                        case -2: { EntityManager.CreateEntity(new Vector2(0, 0), SpawnTableManager.RetrieveRandomEntity("Field-1", true), true, true); break; }
-                        case -1: { EntityManager.CreateEntity(new Vector2(0, 0), SpawnTableManager.RetrieveRandomEntity("Cave-1", true), true, true); break; }
-                        case 0: { EntityManager.CreateEntity(new Vector2(0, 0), SpawnTableManager.RetrieveRandomEntity("Dungeon-1", true), true, true); break; }
-                        case 1: { EntityManager.CreateEntity(new Vector2(0, 0), SpawnTableManager.RetrieveRandomEntity("Shore-1", true), true, true); break; }
+                        Vector2 test = traversable.actorLayer.GetComponent<Vector2>();
+                        if (tiles[start.x, start.y] != tiles[test.x, test.y])
+                        {
+                            traversable.actorLayer = null;
+                        }
+                    }
+                    if (traversable.itemLayer != null)
+                    {
+                        Vector2 test = traversable.itemLayer.GetComponent<Vector2>();
+                        if (tiles[start.x, start.y] != tiles[test.x, test.y])
+                        {
+                            traversable.itemLayer = null;
+                        }
+                    }
+                    if (traversable.obstacleLayer != null)
+                    {
+                        Vector2 test = traversable.obstacleLayer.GetComponent<Vector2>();
+                        if (tiles[start.x, start.y] != tiles[test.x, test.y])
+                        {
+                            traversable.obstacleLayer = null;
+                        }
                     }
                 }
             }
@@ -127,6 +134,8 @@ namespace The_Ruins_of_Ipsus
         public static int mapWidth { get; set; }
         public static int mapHeight { get; set; }
         public static int depth { get; set; }
-        public static bool testing = false;
+        public static int difficulty { get; set; }
+        public static string floorType { get; set; }
+        public static bool developerMode { get; set; } = true;
     }
 }

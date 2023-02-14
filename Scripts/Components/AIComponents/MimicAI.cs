@@ -43,15 +43,9 @@ namespace The_Ruins_of_Ipsus
                 { new StateMachine(State.Awake, Input.Tired), State.Asleep },
             };
         }
-        public MimicAI(List<string> favored, List<string> hated, int _baseInterest)
-        {
-            favoredEntities = favored;
-            hatedEntities = hated;
-            currentState = State.Awake;
-            interest = _baseInterest;
-            baseInterest = _baseInterest;
-            SetTransitions();
-        }
+        public MimicAI(List<string> favoredEntities, List<string> hatedEntities, int baseInterest, int minDistance, int preferredDistance, int maxDistance, int abilityChance, int hate, int fear, int greed)
+            : base(favoredEntities, hatedEntities, baseInterest, minDistance, preferredDistance, maxDistance, abilityChance, hate, fear, greed)
+        { SetTransitions(); currentState = State.Awake; }
         public MimicAI()
         {
 

@@ -8,13 +8,15 @@ using SadConsole.Entities;
 using System.ComponentModel;
 using Newtonsoft.Json.Linq;
 using SadConsole.Readers;
+using The_Ruins_of_Ipsus.Scripts.JsonDataManagement;
+using SadConsole.Effects;
 
 namespace The_Ruins_of_Ipsus
 {
     public class Program
     {
         private static readonly int screenWidth = 100;
-        private static readonly int screenHeight = 50;
+        private static readonly int screenHeight = 60;
         public static RootConsole rootConsole;
 
         // The map console takes up most of the screen and is where the map will be drawn.
@@ -22,21 +24,17 @@ namespace The_Ruins_of_Ipsus
         private static readonly int mapHeight = 50;
         public static TitleConsole mapConsole;
         // Below the map console is the message console which outputs messages to the player.
-        private static readonly int messageWidth = 35;
-        private static readonly int messageHeight = 15;
+        private static readonly int messageWidth = 100;
+        private static readonly int messageHeight = 10;
         public static TitleConsole logConsole;
         // The player console or "rogue" console displays player information, such as stats and status effects.
         private static readonly int rogueWidth = 35;
-        private static readonly int rogueHeight = 35;
+        private static readonly int rogueHeight = 50;
         public static TitleConsole playerConsole;
         // The inventory console displays the player's inventory and will allow for navigation through the inventory.
         private static readonly int inventoryWidth = 35;
         private static readonly int inventoryHeight = 50;
         public static TitleConsole inventoryConsole;
-        // The equipment console displays the player's equipment and will allow for equipment display.
-        private static readonly int equipmentWidth = 35;
-        private static readonly int equipmentHeight = 50;
-        public static TitleConsole equipmentConsole;
         // The target console will display information about targeting.
         private static readonly int targetWidth = 35;
         private static readonly int targetHeight = 50;
@@ -63,13 +61,15 @@ namespace The_Ruins_of_Ipsus
         }
         private static void Init()
         {
+            Settings.ResizeMode = Settings.WindowResizeOptions.Scale;
+            
+
             rootConsole = new RootConsole(Game.Instance.ScreenCellsX, Game.Instance.ScreenCellsY);
 
             mapConsole = new TitleConsole("< Map >", mapWidth, mapHeight) { Position = new Point(0, 0) };
-            logConsole = new TitleConsole("< Message Log >", messageWidth, messageHeight) { Position = new Point(mapWidth, rogueHeight) };
+            logConsole = new TitleConsole("< Message Log >", messageWidth, messageHeight) { Position = new Point(0, mapHeight) };
             playerConsole = new TitleConsole("< The Rogue @ >", rogueWidth, rogueHeight) { Position = new Point(mapWidth, 0) };
             inventoryConsole = new TitleConsole("< Inventory >", inventoryWidth, inventoryHeight) { Position = new Point(mapWidth, 0) };
-            equipmentConsole = new TitleConsole("< Equipment >", equipmentWidth, equipmentHeight) { Position = new Point(mapWidth, 0) };
             targetConsole = new TitleConsole("< Targeting >", targetWidth, targetHeight) { Position = new Point(mapWidth, 0) };
             lookConsole = new TitleConsole("< Looking >", lookWidth, lookHeight) { Position = new Point(mapWidth, 0) };
 
@@ -103,21 +103,20 @@ namespace The_Ruins_of_Ipsus
         public static void LoadFunctions()
         {
             Renderer renderer = new Renderer(mapConsole, mapWidth, mapHeight);
-            Log log = new Log(logConsole);
-            StatManager stats = new StatManager(playerConsole);
+            Log log = new Log();
+            StatManager stats = new StatManager();
             SaveDataManager saveDataManager = new SaveDataManager();
             JsonDataManager jsonDataManager = new JsonDataManager();
             PronounReferences pronounReferences = new PronounReferences();
-            //SpawnTableManager spawnTableManager = new SpawnTableManager();
+            SpawnTableManager spawnTableManager = new SpawnTableManager();
             DijkstraMaps dijkstraMaps = new DijkstraMaps(gameMapWidth, gameMapHeight);
-            EntityManager.LoadAllEntities();
 
             //SaveDataManager.LoadSave();
             NewGame();
         }
         public static void LoadPlayerFunctions(Entity player)
         {
-            InventoryManager inventory = new InventoryManager(logConsole, player);
+            InventoryManager inventory = new InventoryManager(player);
             Look look = new Look(player);
             TargetReticle reticle = new TargetReticle(player);
         }
@@ -142,12 +141,12 @@ namespace The_Ruins_of_Ipsus
         public static void CreateNewPlayer()
         {
             player = new Entity();
-            player.AddComponent(new ID(0));
+            player.AddComponent(new ID("Actor"));
             player.AddComponent(new Vector2(0, 0));
             player.AddComponent(new Draw("White", "Black", '@'));
             player.AddComponent(new Description("You", "It's you."));
             player.AddComponent(PronounReferences.pronounSets["Player"]);
-            player.AddComponent(new Stats(10, 10, 1f, 50, 1, 1));
+            player.AddComponent(new Stats(10, 10, 1f, 20, 1, 1, 0));
             player.AddComponent(new TurnFunction());
             player.AddComponent(new Movement(new List<int> { 1, 2 }));
             player.AddComponent(new Inventory());
@@ -158,13 +157,13 @@ namespace The_Ruins_of_Ipsus
             Entity startingWeapon = new Entity(new List<Component>()
             {
                 new Vector2(0, 0),
-                new ID(1100),
+                new ID("Item"),
                 new Draw("Orange", "Black", '!'),
                 new Description("Potion of Orange*Explosion", "The label reads: 'Do Not Drink'."),
                 new Usable("The potion explodes in a Red*fiery burst!"),
                 new Throwable("The potion explodes in a Red*fiery burst!"),
-                new ExplodeOnUse(6, 0),
-                new ExplodeOnThrow(6),
+                new ExplodeOnUse(3, 0),
+                new ExplodeOnThrow(3),
             });
             InventoryManager.AddToInventory(player, new Entity(startingWeapon));
             InventoryManager.AddToInventory(player, new Entity(startingWeapon));
@@ -174,7 +173,7 @@ namespace The_Ruins_of_Ipsus
             Entity testScrollOfLightning = new Entity(new List<Component>()
             {
                 new Vector2(0, 0),
-                new ID(1300),
+                new ID("Item"),
                 new Draw("Yellow", "Black", '?'),
                 new Description("Scroll of Yellow*Lightning", "This scroll is carved with Yellow*yellow Yellow*runes onto a vellum of human skin."),
                 new Usable("A bolt of Yellow*lightning crackles and fries the air in front of the scroll!", false),
@@ -189,7 +188,7 @@ namespace The_Ruins_of_Ipsus
             Entity testMagicMappingScroll = new Entity(new List<Component>()
             {
                 new Vector2(0, 0),
-                new ID(1301),
+                new ID("Item"),
                 new Draw("Cyan", "Black", '?'),
                 new Description("Scroll of Cyan*Mapping", "This scroll seems as if lighter than air and feels charged with unearthly knowledge."),
                 new Usable("The world around you becomes Cyan*clearer."),
@@ -203,13 +202,13 @@ namespace The_Ruins_of_Ipsus
             Entity djinnInABottle = new Entity(new List<Component>()
             {
                 new Vector2(0, 0),
-                new ID(1101),
+                new ID("Item"),
                 new Draw("Cyan", "Black", '!'),
                 new Description("Cyan*Djinn in a Bottle", "This glass bottle is filled with a furious Cyan*Djinn."),
                 new Usable("The bottle cracks open and a furious Cyan*Djinn emerges!"),
                 new Throwable("The bottle cracks open and a furious Cyan*Djinn emerges!"),
-                new SummonActorOnUse(new int[] { 75 }, 1, 0),
-                new SummonActorOnThrow(new int[] { 75 }, 1),
+                new SummonActorOnUse(new string[] { "Djinn" }, 1, 0),
+                new SummonActorOnThrow(new string[] { "Djinn" }, 1),
             });
             InventoryManager.AddToInventory(player, new Entity(djinnInABottle));
             InventoryManager.AddToInventory(player, new Entity(djinnInABottle));
@@ -219,7 +218,7 @@ namespace The_Ruins_of_Ipsus
             Entity testPotionOfDragonsFire = new Entity(new List<Component>()
             {
                 new Vector2(0, 0),
-                new ID(1102),
+                new ID("Item"),
                 new Draw("Red", "Black", '!'),
                 new Description("Potion of Red*Dragon's Red*Fire", "The label reads: 'Breathe with the fire of Red*Dragons!'"),
                 new Usable($"A cone of Red*flame emits from your mouth!", false),
@@ -231,10 +230,27 @@ namespace The_Ruins_of_Ipsus
             InventoryManager.AddToInventory(player, new Entity(testPotionOfDragonsFire));
             InventoryManager.AddToInventory(player, new Entity(testPotionOfDragonsFire));
 
+            Entity testPotionOfFrost = new Entity(new List<Component>()
+            {
+                new Vector2(0, 0),
+                new ID("Item"),
+                new Draw("Light_Blue", "Black", '!'),
+                new Description("Potion of Light_Blue*Hoary Light_Blue*Frost", "The bottle looks as if filled with Light_Blue*frost and is cold to the touch."),
+                new Usable($"A cone of immense Light_Blue*cold explodes from the bottle!", false),
+                new Throwable($"A cone of immense Light_Blue*cold explodes from the bottle!"),
+                new BreathWeaponOnUse(5, "Frost", 10),
+                new BreathWeaponOnThrow(5, "Frost"),
+            });
+            InventoryManager.AddToInventory(player, new Entity(testPotionOfFrost));
+            InventoryManager.AddToInventory(player, new Entity(testPotionOfFrost));
+            InventoryManager.AddToInventory(player, new Entity(testPotionOfFrost));
+            InventoryManager.AddToInventory(player, new Entity(testPotionOfFrost));
+            InventoryManager.AddToInventory(player, new Entity(testPotionOfFrost));
+
             Entity testTongueLash = new Entity(new List<Component>()
             {
                 new Vector2(0, 0),
-                new ID(1932),
+                new ID("Item"),
                 new Draw("Pink", "Black", '/'),
                 new Description("Pink*Tongue Test", "Test"),
                 new Usable($"A giant Pink*Tongue emits from your mouth!", false),
@@ -267,8 +283,7 @@ namespace The_Ruins_of_Ipsus
         }
         public static void LoadSave(SaveData saveData)
         {
-            EntityManager.LoadAllEntities();
-            World world = new World(gameMapWidth, gameMapHeight, saveData.depth, saveData.seed);
+            World world = new World(gameMapWidth, gameMapHeight, saveData.depth, saveData.seed, saveData.difficulty);
 
             foreach (Entity actor in saveData.actors) { if (actor != null) { Entity entity = EntityManager.ReloadEntity(actor); World.tiles[entity.GetComponent<Vector2>().x, entity.GetComponent<Vector2>().y].actorLayer = entity; } }
             foreach (Entity item in saveData.items) { if (item != null) { Entity entity = EntityManager.ReloadEntity(item); World.tiles[entity.GetComponent<Vector2>().x, entity.GetComponent<Vector2>().y].itemLayer = entity; } }
@@ -329,30 +344,35 @@ namespace The_Ruins_of_Ipsus
     public class ParticleComponent : Component
     {
         public int life { get; set; }
-        public int speed { get; set; }
         public string direction { get; set; }
         public int threshold { get; set; }
         public int currentThreshold = 0;
         public Draw[] particles { get; set; }
         public int currentParticle = 0;
         public bool animation = false;
+        public Vector2 trackedTarget = null;
+        public bool blink { get; set; }
+        private bool hasBlinked { get; set; } = true;
         public void Progress()
         {
 
             currentThreshold--;
 
+            Vector2 position = entity.GetComponent<Vector2>();
+
             if (currentThreshold <= 0)
             {
-                Vector2 position = entity.GetComponent<Vector2>();
-
-                currentThreshold = threshold;
-
                 //The kind of movement a particle will display.
                 switch (direction)
                 {
                     case "Attached":
                         {
                             //Work for later, go make it so the particle that can be stuck to an entity.
+                            if (trackedTarget != null) 
+                            {
+                                entity.GetComponent<Vector2>().x = trackedTarget.x;
+                                entity.GetComponent<Vector2>().y = trackedTarget.y;
+                            }
                             break;
                         }
                     case "Target":
@@ -462,12 +482,32 @@ namespace The_Ruins_of_Ipsus
                             break;
                         }
                 }
+            }
 
-                //If in bounds display the particle to the map.
-                if (CMath.CheckBounds(position.x, position.y))
+            //If in bounds display the particle to the map.
+            if (CMath.CheckBounds(position.x, position.y))
+            {
+                if (blink)
+                {
+                    if (!hasBlinked)
+                    {
+                        World.sfx[position.x, position.y] = entity.GetComponent<Draw>();
+                        hasBlinked = true;
+                    }
+                    else
+                    {
+                        hasBlinked = false;
+                    }
+                }
+                else
                 {
                     World.sfx[position.x, position.y] = entity.GetComponent<Draw>();
                 }
+            }
+
+            if (currentThreshold <= 0)
+            {
+                currentThreshold = threshold;
 
                 if (currentParticle != particles.Length - 1)
                 {
@@ -495,22 +535,24 @@ namespace The_Ruins_of_Ipsus
         {
             Program.rootConsole.particles.Remove(this);
         }
-        public ParticleComponent(int _life, int _speed, string _direction, int _threshHold, Draw[] _particles, Vector2 target = null, bool _animation = false)
+        public ParticleComponent(int _life, string _direction, int _threshHold, Draw[] _particles, Vector2 target = null, bool _blink = false)
         {
             life = _life;
-            speed = _speed;
             direction = _direction;
             threshold = _threshHold;
             particles = _particles;
+            blink = _blink;
 
             if (target != null)
             {
-                DijkstraMaps.CreateMap(target, "ParticlePath");
-            }
-
-            if (_animation)
-            {
-                animation = true;
+                if (_direction == "Target")
+                {
+                    DijkstraMaps.CreateMap(target, "ParticlePath");
+                }
+                else if (_direction == "Attached")
+                {
+                    trackedTarget = target;
+                }
             }
         }
     }

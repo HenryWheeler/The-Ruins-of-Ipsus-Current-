@@ -17,6 +17,8 @@ namespace The_Ruins_of_Ipsus
             mapWidth = _mapWidth; mapHeight = _mapHeight;
             randomFill = World.seed.Next(48, 52);
             SetAllWalls();
+            World.difficulty = 1;
+            World.floorType = "Verdant_Cave";
 
             for (int x = 3; x < mapWidth - 3; x++)
             {
@@ -40,9 +42,20 @@ namespace The_Ruins_of_Ipsus
             }
             for (int z = 0; z < smooth; z++) { SmoothMap(); }
             CreateSurroundingWalls();
+            for (int x = 3; x < mapWidth - 3; x++)
+            {
+                for (int y = 3; y < mapHeight - 3; y++)
+                {
+                    if (CMath.CheckBounds(x, y))
+                    {
+                        viableTiles.Add(new Vector2(x, y));
+                    }
+                }
+            }
             CreateConnections(1, 0);
             CreateFoliage();
             CreateStairs();
+            PopulateFloor();
         }
         public void CreateFoliage()
         {
@@ -67,8 +80,9 @@ namespace The_Ruins_of_Ipsus
                             Entity foliage = new Entity(new List<Component>()
                             {
                                 new Vector2(x, y),
+                                new ID("Obstacle"),
                                 new Draw("Green", "Black", (char)231),
-                                new Description("Green*Foliage", "Some thick Green*green Green*foliage."),
+                                new Description("Green*Fern", "A thick Green*green Green*Fern."),
                                 new Visibility(true, false, false),
                             });
                             World.tiles[x, y].obstacleLayer = foliage;

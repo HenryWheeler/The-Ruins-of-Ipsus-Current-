@@ -10,16 +10,17 @@ namespace The_Ruins_of_Ipsus
 {
     public class InventoryManager
     {
-        private static TitleConsole console;
         public static bool inventoryOpen = false;
         public static bool equipmentOpen = false;
         private static Entity player;
         public static int selection = 0;
-        public static int currentPage = 0;
-        private static int maxItemPerPage = 6;
+        private static int maxItemPerSide = 8;
         private static string spacer = " + + ";
-        public static List<List<Entity>> inventoryDisplay = new List<List<Entity>>();
-        public InventoryManager(TitleConsole _console, Entity _player) { console = _console; player = _player; }
+        public static List<Entity> inventoryDisplay = new List<Entity>();
+        public InventoryManager(Entity _player)
+        { 
+            player = _player; 
+        }
         public static void GetItem(Entity entity)
         {
             Vector2 vector2 = entity.GetComponent<Vector2>();
@@ -66,6 +67,11 @@ namespace The_Ruins_of_Ipsus
             if (actor != null && item != null && actor.GetComponent<Inventory>().inventory != null)
             {
                 actor.GetComponent<Inventory>().inventory.Add(item);
+
+                if (CMath.ReturnAI(actor) != null && item.GetComponent<Equippable>() != null)
+                {
+                    CMath.ReturnAI(actor).ConsiderEquipment(item.GetComponent<Equippable>().slot);
+                }
             }
         }
         public static void RemoveFromInventory(Entity actor, Entity item)
@@ -77,7 +83,7 @@ namespace The_Ruins_of_Ipsus
         }
         public static void OpenEquipment()
         {
-            console.Clear();
+            Program.inventoryConsole.Clear();
             equipmentOpen = true;
             player.GetComponent<TurnFunction>().turnActive = false;
             Program.playerConsole.Clear();
@@ -117,21 +123,21 @@ namespace The_Ruins_of_Ipsus
         }
         public static void OpenInventory()
         {
-            console.Clear();
+            Program.playerConsole.Clear();
+            Program.rootConsole.Children.MoveToTop(Program.inventoryConsole);
             inventoryOpen = true;
             player.GetComponent<TurnFunction>().turnActive = false;
-            selection = 0; currentPage = 0;
-            Program.playerConsole.Clear();
+            selection = 0;
 
             if (player.GetComponent<Inventory>().inventory.Count == 0)
             {
-                console.Print(2, 2, "Inventory is Empty.", Color.White);
+                Program.inventoryConsole.Print(2, 2, "Inventory is Empty.", Color.White);
+                Renderer.CreateConsoleBorder(Program.inventoryConsole);
                 //Action.InventoryAction(player);
             }
             else
             {
                 Refresh();
-                DisplayItem();
                 DisplayInventory();
                 //Action.InventoryAction(player, RLKey.Unknown);
                 //CMath.DisplayToConsole(Log.console, "Welcome to your inventory!", 1, 1);
@@ -139,23 +145,22 @@ namespace The_Ruins_of_Ipsus
         }
         public static void CloseInventory()
         {
+            Program.playerConsole.Clear();
             inventoryDisplay.Clear();
-            inventoryOpen = false; player.GetComponent<TurnFunction>().turnActive = true;
-            //Action.PlayerAction(player);
+            Program.inventoryConsole.Clear();
+            inventoryOpen = false; 
+            player.GetComponent<TurnFunction>().turnActive = true;
+            Program.rootConsole.Children.MoveToTop(Program.playerConsole);
+            Program.rootConsole.Children.MoveToTop(Program.logConsole);
             StatManager.UpdateStats(player);
             Log.DisplayLog();
         }
         public static void Refresh()
         {
             inventoryDisplay.Clear();
-            int itemCount = 0;
-            int pageCount = 0;
-            inventoryDisplay.Add(new List<Entity>());
             foreach (Entity item in player.GetComponent<Inventory>().inventory)
             {
-                if (itemCount == maxItemPerPage - 1) { itemCount = 0; pageCount++; inventoryDisplay.Add(new List<Entity>()); }
-                inventoryDisplay[pageCount].Add(item);
-                itemCount++;
+                inventoryDisplay.Add(item);
             }
             DisplayInventory();
         }
@@ -239,81 +244,53 @@ namespace The_Ruins_of_Ipsus
         }
         public static void DisplayInventory()
         {
-            console.Clear();
-            int x = 0;
-            string output = "";
-            foreach (Entity item in inventoryDisplay[currentPage])
+            Program.inventoryConsole.Clear();
+
+            //Create list of items with selection indicator.
+            int y = 2;
+            int index = -1;
+
+            for (int i = selection - maxItemPerSide; i <= selection + maxItemPerSide; i++)
             {
-                string addOn = "";
-                if (item.GetComponent<Equippable>() != null && item.GetComponent<Equippable>().equipped)
+                if (inventoryDisplay.Count <= (maxItemPerSide * 2) + 1) { index++; }
+                else if (i < 0) { index = inventoryDisplay.Count + i; }
+                else if (i >= inventoryDisplay.Count) { index = i - inventoryDisplay.Count; }
+                else { index = i; }
+
+                //If the index is equal to the selection create a pattern like this >{INCLUDE ITEM NAME HERE}<.
+                if (index >= 0 && index < inventoryDisplay.Count)
                 {
-                    addOn = " - Equipped";
-                }
-                if (selection == x)
-                {
-                    output += "X " + item.GetComponent<Description>().name + addOn + " + ";
+                    if (selection == index)
+                    {
+                        Program.inventoryConsole.SetCellAppearance(2, y, new ColoredGlyph(Color.Yellow, Color.Black, '>'));
+                        Program.inventoryConsole.SetCellAppearance(Program.inventoryConsole.Width - 3, y, new ColoredGlyph(Color.Yellow, Color.Black, '<'));
+                    }
+                    if (inventoryDisplay[index].GetComponent<Equippable>() != null && inventoryDisplay[index].GetComponent<Equippable>().equipped)
+                    {
+                        CMath.DisplayToConsole(Program.inventoryConsole, $"{inventoryDisplay[index].GetComponent<Description>().name}- Equipped", 3, 0, 0, y, false);
+                    }
+                    else { CMath.DisplayToConsole(Program.inventoryConsole, $"{inventoryDisplay[index].GetComponent<Description>().name}", 3, 0, 0, y, false); }
                 }
                 else
                 {
-                    output += item.GetComponent<Description>().name + addOn + " + ";
+                    Program.inventoryConsole.DrawLine(new Point(2, y), new Point(Program.inventoryConsole.Width - 3, y), '-', Color.White);
                 }
-                x++;
+                y++;
             }
-            CMath.DisplayToConsole(console, output, 2, 0, 0, 2);
-            console.Print(12, 13, " Page:" + (currentPage + 1) + "/" + inventoryDisplay.Count + " ", Color.White);
-            Renderer.CreateConsoleBorder(console, true);
-        }
-        public static void MoveSelection(int move)
-        {
-            if (player.GetComponent<Inventory>().inventory.Count != 0)
-            {
-                if (selection + move > -1 && selection + move < inventoryDisplay[currentPage].Count)
-                {
-                    selection += move;
-                }
-                else if (selection + move <= -1)
-                {
-                    MovePage(-1);
-                    //selection = inventoryDisplay[currentPage].Count - 1;
-                }
-                else if (selection + move >= inventoryDisplay[currentPage].Count)
-                {
-                    MovePage(1);
-                    //selection = 0; 
-                }
-                DisplayItem();
-                DisplayInventory();
-            }
-        }
-        public static void MovePage(int move)
-        {
-            if (player.GetComponent<Inventory>().inventory.Count != 0)
-            {
-                if (inventoryDisplay.Count > 1)
-                {
-                    if (currentPage + move > -1 && currentPage + move < inventoryDisplay.Count)
-                    {
-                        currentPage += move; selection = 0;
-                    }
-                    else if (currentPage + move <= -1)
-                    {
-                        currentPage = inventoryDisplay.Count - 1; selection = 0;
-                    }
-                    else if (currentPage + move >= inventoryDisplay.Count)
-                    {
-                        currentPage = 0; selection = 0;
-                    }
-                }
-                DisplayItem();
-                DisplayInventory();
-            }
-        }
-        public static void DisplayItem()
-        {
+
+            //Draw box around item display
+            Program.inventoryConsole.DrawBox(new Rectangle(1, 1, Program.inventoryConsole.Width - 2, (maxItemPerSide * 2) + 3),
+                ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+
+            Program.inventoryConsole.Print(2, (maxItemPerSide * 2) + 3, 
+                $" {selection + 1}/{inventoryDisplay.Count} ".Align(HorizontalAlignment.Center, Program.inventoryConsole.Width - 5, 
+                    (char)196), Color.Yellow, Color.Black);
+
+            //Display selected item.
             string addition = "";
-            if (inventoryDisplay[currentPage][selection].GetComponent<Equippable>() != null)
+            if (inventoryDisplay[selection].GetComponent<Equippable>() != null)
             {
-                string[] slot = inventoryDisplay[currentPage][selection].GetComponent<Equippable>().slot.Split();
+                string[] slot = inventoryDisplay[selection].GetComponent<Equippable>().slot.Split();
                 if (slot.Count() == 1)
                 {
                     addition += $"{spacer}Yellow*Can be equipped/unequipped in Yellow*{slot[0]} with Yellow*[E].";
@@ -323,9 +300,9 @@ namespace The_Ruins_of_Ipsus
                     addition += $"{spacer}Yellow*Can be equipped/unequipped in Yellow*{slot[0]} Yellow*{slot[1]} with Yellow*[E].";
                 }
 
-                if (inventoryDisplay[currentPage][selection].GetComponent<AttackFunction>() != null)
+                if (inventoryDisplay[selection].GetComponent<AttackFunction>() != null)
                 {
-                    AttackFunction function = inventoryDisplay[currentPage][selection].GetComponent<AttackFunction>();
+                    AttackFunction function = inventoryDisplay[selection].GetComponent<AttackFunction>();
                     addition += $"{spacer} Does Yellow*{function.die1}d{function.die2} damage with a damage modifier of Yellow*{function.damageModifier} and a bonus to hit of Yellow*{function.toHitModifier}.";
                 }
             }
@@ -333,7 +310,7 @@ namespace The_Ruins_of_Ipsus
             {
                 addition += $"{spacer}Yellow*Cannot be equipped.";
             }
-            if (inventoryDisplay[currentPage][selection].GetComponent<Usable>() != null)
+            if (inventoryDisplay[selection].GetComponent<Usable>() != null)
             {
                 addition += $"{spacer}Yellow*Can be used with Yellow*[U].";
             }
@@ -343,50 +320,38 @@ namespace The_Ruins_of_Ipsus
             }
             addition += $"{spacer}Yellow*Can be thrown with Yellow*[T].";
 
-            Description description = inventoryDisplay[currentPage][selection].GetComponent<Description>();
-            CMath.DisplayToConsole(Program.playerConsole, description.description + addition, 1, 1);
-            string[] nameParts = description.name.Split(' ');
-            string name = "";
-            foreach (string part in nameParts)
+            Description description = inventoryDisplay[selection].GetComponent<Description>();
+            int length = CMath.DisplayToConsole(Program.inventoryConsole, description.description + addition, 2, 1, 0, (maxItemPerSide * 2) + 6, false);
+
+            //Create box surrounding item information.
+
+            Program.inventoryConsole.DrawBox(new Rectangle(1, (maxItemPerSide * 2) + 4, Program.inventoryConsole.Width - 2, 50 - ((maxItemPerSide * 2) + 5)),
+                ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+
+            //Create outline for console with console name.
+            Renderer.CreateConsoleBorder(Program.inventoryConsole, true);
+        }
+        public static void MoveSelection(bool up)
+        {
+            if (player.GetComponent<Inventory>().inventory.Count != 0)
             {
-                string[] temp = part.Split('*');
-                if (temp.Length == 1)
+                int move; 
+                if (up) { move = -1; }
+                else { move = 1; }
+                if (selection + move > -1 && selection + move < inventoryDisplay.Count)
                 {
-                    name += temp[0] + " ";
+                    selection += move;
                 }
-                else
+                else if (selection + move <= -1)
                 {
-                    name += temp[1] + " ";
+                    selection = inventoryDisplay.Count - 1;
                 }
+                else if (selection + move >= inventoryDisplay.Count)
+                {
+                    selection = 0; 
+                }
+                DisplayInventory();
             }
-            int start = 17 - (int)Math.Ceiling((double)name.Length / 2);
-
-            Program.playerConsole.Print(start, 0, " ", Color.White);
-
-            start++;
-
-            foreach (string part in nameParts)
-            {
-                string[] temp = part.Split('*');
-                if (temp.Length == 1)
-                {
-                    Program.playerConsole.Print(start, 0, temp[0] + " ", Color.White, Color.Black);
-                    start += temp[0].Length + 1;
-                }
-                else
-                {
-                    Program.playerConsole.Print(start, 0, temp[1] + " ", ColorFinder.ColorPicker(temp[0]), Color.Black);
-                    start += temp[1].Length + 1;
-                }
-            }
-
-            CMath.DisplayToConsole(Program.playerConsole, $"Select Item Yellow*[Arrow Yellow*Keys] {spacer} Close Inventory Yellow*[I/Escape]", 0, 2, 1, 29, false);
-            CMath.DisplayToConsole(Program.playerConsole, $"Close Inventory Yellow*[I/Escape]", 0, 2, 1, 32, false);
-
-            Renderer.CreateConsoleBorder(Program.playerConsole, false);
-
-            Program.playerConsole.Print(2, 0, $" Stats {(char)196} Equipment ", Color.Gray);
-            Program.playerConsole.Print(21, 0, $"{(char)196} Inventory ", Color.White);
         }
     }
 }

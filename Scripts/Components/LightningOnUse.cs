@@ -21,6 +21,12 @@ namespace The_Ruins_of_Ipsus
                     entity.GetComponent<TurnFunction>().EndTurn();
                 }
             }
+            else
+            {
+                this.entity.GetComponent<Usable>().DisplayMessage(entity);
+                SpecialEffectManager.Lightning(entity, target, strength, range);
+                entity.GetComponent<TurnFunction>().EndTurn();
+            }
         }
         public LightningOnUse(int _strength, int _range, bool _singleUse = true)
         {

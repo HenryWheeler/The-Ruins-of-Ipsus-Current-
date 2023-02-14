@@ -26,26 +26,29 @@ namespace The_Ruins_of_Ipsus
         }
         public void DisplayMessage(Entity user)
         {
-            if (user != entity)
+            if (useMessage != "")
             {
-                if (user.GetComponent<PronounSet>().present)
+                if (user != entity)
                 {
-                    Log.Add(user.GetComponent<Description>().name + " has used the " + entity.GetComponent<Description>().name + "! " + useMessage);
+                    if (user.GetComponent<PronounSet>().present)
+                    {
+                        Log.Add(user.GetComponent<Description>().name + " has used the " + entity.GetComponent<Description>().name + "! " + useMessage);
+                    }
+                    else
+                    {
+                        Log.Add(user.GetComponent<Description>().name + " have used the " + entity.GetComponent<Description>().name + "! " + useMessage);
+                    }
                 }
                 else
                 {
-                    Log.Add(user.GetComponent<Description>().name + " have used the " + entity.GetComponent<Description>().name + "! " + useMessage);
-                }
-            }
-            else
-            {
-                if (user.GetComponent<PronounSet>().present)
-                {
-                    Log.Add(user.GetComponent<Description>().name + " has " + useMessage);
-                }
-                else
-                {
-                    Log.Add(user.GetComponent<Description>().name + " have " + useMessage);
+                    if (user.GetComponent<PronounSet>().present)
+                    {
+                        Log.Add(user.GetComponent<Description>().name + " has " + useMessage);
+                    }
+                    else
+                    {
+                        Log.Add(user.GetComponent<Description>().name + " have " + useMessage);
+                    }
                 }
             }
         }

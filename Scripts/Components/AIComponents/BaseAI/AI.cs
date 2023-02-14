@@ -6,6 +6,20 @@ namespace The_Ruins_of_Ipsus
     [Serializable]
     public abstract class AI : Component
     {
+        public AI(List<string> favoredEntities, List<string> hatedEntities, int baseInterest, int minDistance, int preferredDistance, int maxDistance, int abilityChance, int hate, int fear, int greed)
+        {
+            this.favoredEntities = favoredEntities;
+            this.hatedEntities = hatedEntities;
+            this.baseInterest = baseInterest;
+            this.interest = baseInterest;
+            this.minDistance = minDistance;
+            this.preferredDistance = preferredDistance;
+            this.maxDistance = maxDistance;
+            this.abilityChance = abilityChance;
+            this.hate = hate;
+            this.fear = fear;
+            this.greed = greed;
+        }
         //[Serializable]
         //[JsonConverter(typeof(StringEnumConverter))]
         public enum State
@@ -30,6 +44,7 @@ namespace The_Ruins_of_Ipsus
             Tired,
             Hatred,
             Bored,
+            Fear,
             None
         }
         public class StateMachine
@@ -62,15 +77,42 @@ namespace The_Ruins_of_Ipsus
         public int maxDistance { get; set; }
         public int minDistance { get; set; }
         public int preferredDistance { get; set; }
+        /// <summary>
+        /// The level of hate the AI has. 
+        /// A higher level will lead to the AI being far more aggressive and less likely to flee.
+        /// AI with a hate of zero will never fight.
+        /// </summary>
+        public int hate { get; set; }
+        /// <summary>
+        /// The level of fear the AI has. 
+        /// A higher level will lead to the AI being far more likely to flee if it feels an enemy is more powerful than it. 
+        /// AI with a fear of zero will never run.
+        /// </summary>
+        public int fear { get; set; }
+        /// <summary>
+        /// The level of greed the AI has. 
+        /// A higher level will lead to the AI being more likely to attempt to grab items within its environment. 
+        /// AI with a greed of zero will never attempt to grab items.
+        /// </summary>
+        public int greed { get; set; }
+        /// <summary>
+        ///The chance for the AI to use an ability each round
+        /// </summary>
         public int abilityChance { get; set; }
-        //The chance for a creature to use an ability each round
         public void Process()
         {
+            bool execution = false;
             try
             {
-                if (transitions.Count == 0)
+                if (entity.components == null)
                 {
-                    throw new Exception("Entity Transition Count == 0");
+                    RemoveEntityEntirely();
+                    throw new Exception("Entity component list equals null: Removing Entity to prevent further issues.");
+                }
+                else if (transitions.Count == 0)
+                {
+                    //RemoveEntityEntirely();
+                    throw new Exception("Entity transition count equals zero: Removing Entity to prevent further issues.");
                 }
 
                 Observe();
@@ -79,14 +121,63 @@ namespace The_Ruins_of_Ipsus
                 {
                     currentState = transitions[stateMachine];
                     currentInput = Input.None;
+
+                    StateParticleCreation();
                 }
+
+                execution = true;
                 ExecuteAction();
             }
             catch (Exception e)
             {
-                Log.Add($"{entity.GetComponent<Description>().name} gives error: {e.Message}");
+                if (execution)
+                {
+                    Log.Add($"{entity.GetComponent<Description>().name} gives error: {e.Message}");
+                }
+                else
+                {
+                    Log.Add($"{entity.GetComponent<Description>().name} gives error: {e.Message}");
+                }
                 entity.GetComponent<TurnFunction>().EndTurn();
             }
+        }
+        public void StateParticleCreation()
+        {
+            switch (currentState) 
+            {
+                case State.Angry: 
+                    {
+                        Vector2 vector2 = entity.GetComponent<Vector2>();
+                        Entity hitParticle = new Entity(new List<Component>
+                        {
+                            new Vector2(0, 0),
+                            new Draw("Red", "Black", (char)19),
+                            new ParticleComponent(30, "Attached", 1, new Draw[] { new Draw("Red", "Black", (char)19) }, vector2)
+                        });
+                        Renderer.AddParticle(vector2.x, vector2.y, hitParticle);
+                        break;
+                    }
+                case State.Fearful:
+                    {
+                        Vector2 vector2 = entity.GetComponent<Vector2>();
+                        Entity hitParticle = new Entity(new List<Component>
+                        {
+                            new Vector2(0, 0),
+                            new Draw("Purple", "Black", (char)19),
+                            new ParticleComponent(30, "Attached", 1, new Draw[] { new Draw("Purple", "Black", (char)19) }, vector2)
+                        });
+                        Renderer.AddParticle(vector2.x, vector2.y, hitParticle);
+                        break;
+                    }
+            }
+        }
+        public void RemoveEntityEntirely()
+        {
+            TurnManager.RemoveActor(entity.GetComponent<TurnFunction>());
+            entity.GetComponent<TurnFunction>().turnActive = false;
+            Vector2 position = entity.GetComponent<Vector2>();
+            World.tiles[position.x, position.y].actorLayer = null;
+            entity.ClearEntity();
         }
         public abstract void ExecuteAction();
         public abstract void SetTransitions();
@@ -101,7 +192,7 @@ namespace The_Ruins_of_Ipsus
             }
             else if (currentState == State.Curious)
             {
-                //Hight level of observation
+                //High level of observation
                 //Check for noise
                 CallObservation(true);
             }
@@ -112,14 +203,182 @@ namespace The_Ruins_of_Ipsus
                 CallObservation(false);
             }
         }
+        public void ConsiderEquipment(string slot)
+        {
+            List<Entity> items = entity.GetComponent<Inventory>().inventory;
+            Entity potentialItem;
+            int relativeValue;
+
+            switch (slot)
+            {
+                case "Armor":
+                    {
+                        Entity armor = entity.GetComponent<Inventory>().ReturnSlot("Armor").item;
+                        potentialItem = armor;
+
+                        if (armor != null && armor.GetComponent<Equippable>().unequipable) 
+                        {
+                            return;
+                        }
+
+                        foreach (Entity item in items)
+                        {
+                            if (item != armor && item.GetComponent<Equippable>() != null && item.GetComponent<Stats>() != null) 
+                            {
+                                potentialItem ??= item;
+                                if (armor != null)
+                                {
+                                    Stats original = potentialItem.GetComponent<Stats>();
+                                    Stats compare = armor.GetComponent<Stats>();
+                                    relativeValue = 0;
+
+                                    if (compare.ac > original.ac) { relativeValue++; }
+                                    else if (compare.ac < original.ac) { relativeValue--; }
+
+                                    if (relativeValue > 0)
+                                    {
+                                        potentialItem = item;
+                                    }
+                                }
+                                else
+                                {
+                                    potentialItem = item;
+                                }
+                            }
+                        }
+
+                        if (potentialItem != armor)
+                        {
+                            InventoryManager.EquipItem(entity, potentialItem);
+                        }
+
+                        break;
+                    }
+                case "Weapon":
+                    {
+                        Entity weapon = entity.GetComponent<Inventory>().ReturnSlot("Weapon").item;
+                        potentialItem = weapon;
+
+                        if (weapon != null && weapon.GetComponent<Equippable>().unequipable)
+                        {
+                            return;
+                        }
+
+                        foreach (Entity item in items)
+                        {
+                            if (item != weapon && item.GetComponent<Equippable>() != null && item.GetComponent<AttackFunction>() != null)
+                            {
+                                potentialItem ??= item;
+                                if (weapon != null)
+                                {
+                                    AttackFunction original = potentialItem.GetComponent<AttackFunction>();
+                                    AttackFunction compare = weapon.GetComponent<AttackFunction>();
+                                    relativeValue = 0;
+
+                                    if (compare.die1 > original.die1) { relativeValue += 2; }
+                                    else if (compare.die1 < original.die1) { relativeValue -= 2; }
+
+                                    if (compare.die2 > original.die2) { relativeValue++; }
+                                    else if (compare.die2 < original.die2) { relativeValue--; }
+
+                                    if (compare.damageModifier > original.damageModifier) { relativeValue++; }
+                                    else if (compare.damageModifier < original.damageModifier) { relativeValue--; }
+
+                                    if (compare.toHitModifier > original.toHitModifier) { relativeValue++; }
+                                    else if (compare.toHitModifier < original.toHitModifier) { relativeValue--; }
+
+                                    if (relativeValue > 0)
+                                    {
+                                        potentialItem = item;
+                                    }
+                                }
+                                else
+                                {
+                                    potentialItem = item;
+                                }
+                            }
+                        }
+
+                        if (potentialItem != weapon)
+                        {
+                            InventoryManager.EquipItem(entity, potentialItem);
+                        }
+
+                        break;
+                    }
+                case "Off Hand":
+                    {
+                        Entity offHand = entity.GetComponent<Inventory>().ReturnSlot("Off Hand").item;
+                        potentialItem = offHand;
+
+                        foreach (Entity item in items)
+                        {
+                            if (item != offHand && item.GetComponent<Equippable>() != null)
+                            {
+                                potentialItem ??= item;
+
+                                AttackFunction original = potentialItem.GetComponent<AttackFunction>();
+                                AttackFunction compare = offHand.GetComponent<AttackFunction>();
+                                relativeValue = 0;
+
+
+                                if (relativeValue >= 0)
+                                {
+                                    potentialItem = item;
+                                }
+                            }
+                        }
+
+                        if (potentialItem != offHand)
+                        {
+                            InventoryManager.EquipItem(entity, potentialItem);
+                        }
+
+                        break;
+                    }
+                case "Magic Item":
+                    {
+                        Entity magicItem = entity.GetComponent<Inventory>().ReturnSlot("Magic Item").item;
+                        potentialItem = magicItem;
+
+                        foreach (Entity item in items)
+                        {
+                            if (item != magicItem && item.GetComponent<Equippable>() != null)
+                            {
+                                potentialItem ??= item;
+
+                                AttackFunction original = potentialItem.GetComponent<AttackFunction>();
+                                AttackFunction compare = magicItem.GetComponent<AttackFunction>();
+                                relativeValue = 0;
+
+
+                                if (relativeValue >= 0)
+                                {
+                                    potentialItem = item;
+                                }
+                            }
+                        }
+
+                        if (potentialItem != magicItem)
+                        {
+                            InventoryManager.EquipItem(entity, potentialItem);
+                        }
+
+                        break;
+                    }
+            }
+        }
         public void OnHit(Entity attacker)
         {
-            if (attacker.GetComponent<Faction>() != null && !hatedEntities.Contains(attacker.GetComponent<Faction>().faction))
+            if (attacker.GetComponent<Faction>() != null)
             {
-                hatedEntities.Add(attacker.GetComponent<Faction>().faction);
+                if (!hatedEntities.Contains(attacker.GetComponent<Faction>().faction))
+                {
+                    hatedEntities.Add(attacker.GetComponent<Faction>().faction);
+                }
+                target = attacker;
             }
-            target = attacker;
-            interest = 100;
+            interest = baseInterest;
             currentInput = Input.Hurt;
         }
         public void CallObservation(bool highLevel)
@@ -179,17 +438,16 @@ namespace The_Ruins_of_Ipsus
                         Traversable traversable = World.tiles[tx, ty];
                         if (CMath.CheckBounds(tx, ty) && traversable.actorLayer != null && traversable.actorLayer != entity)
                         {
-                            int referenceInterest = ReturnFeelings(traversable.actorLayer);
-                            if (interest < referenceInterest)
+                            //Check for entities relative hatred or fear, etc, of the target
+                            InterestInputReturn refInput = ReturnFeelings(traversable.actorLayer);
+                            if (refInput.input != Input.None && refInput.interest > interest && refInput.interest > 0)
                             {
-                                //Check for entities relative hatred or fear, etc, of the target
-                                //For now default to 25 interest
-                                target = traversable.actorLayer;
-                                greatestInput = Input.Hatred;
-                                currentInterest = referenceInterest;
+                                greatestInput = refInput.input;
+                                currentInterest = refInput.interest;
                                 if (!highLevel)
                                 {
                                     interest = currentInterest;
+                                    target = traversable.actorLayer;
                                     return greatestInput;
                                 }
                             }
@@ -218,11 +476,15 @@ namespace The_Ruins_of_Ipsus
                 }
                 if (wasOpaque != 0) break;
             }
-            if (greatestInput != Input.None)
+            if (currentInterest > interest && greatestInput != Input.None)
             {
                 interest = currentInterest;
+                return greatestInput;
             }
-            return greatestInput;
+            else
+            {
+                return Input.None;
+            }
         }
         public bool BlocksLight(Vector2 vector2)
         {
@@ -241,32 +503,30 @@ namespace The_Ruins_of_Ipsus
             }
             return true;
         }
-        public int ReturnFeelings(Entity entity)
+        public InterestInputReturn ReturnFeelings(Entity entity)
         {
-            try
+            if (entity.GetComponent<ID>().entityType == "Actor")
             {
                 string faction = entity.GetComponent<Faction>().faction;
                 Stats stats = entity.GetComponent<Stats>();
                 Stats AIStats = this.entity.GetComponent<Stats>();
                 if (!favoredEntities.Contains(faction) && hatedEntities.Contains(faction))
                 {
-                    if (AIStats.acuity < 0)
+                    int baseInterest = this.baseInterest;
+                    if (AIStats.acuity <= -1)
                     {
-                        return baseInterest - stats.hp;
+                        baseInterest -= stats.hp;
+                        baseInterest += (int)(AIStats.hp * 3f) + hate;
                     }
                     else if (AIStats.acuity < 3)
                     {
-                        int baseInterest = this.baseInterest;
-                        baseInterest -= stats.hp + (stats.strength * 5) + (stats.acuity * 5);
-                        baseInterest -= AIStats.hp + (AIStats.strength * 5) + (AIStats.acuity * 5);
-                        return baseInterest;
+                        baseInterest -= stats.hp + ((stats.strength + 1) * 5) + ((stats.acuity + 1) * 5);
+                        baseInterest += (int)((AIStats.hp + ((AIStats.strength + 1) * 5) + ((AIStats.acuity + 1) * 5)) * 1.5f) + hate;
                     }
                     else
                     {
-
-                        int baseInterest = this.baseInterest;
-                        baseInterest -= stats.hp + (stats.strength * 3) + (stats.acuity * 3) + (stats.ac * 3);
-                        baseInterest -= AIStats.hp + (AIStats.strength * 3) + (AIStats.acuity * 3) + (AIStats.ac * 3);
+                        baseInterest -= stats.hp + ((stats.strength + 1) * 3) + ((stats.acuity + 1) * 3) + ((stats.ac + 1) * 3);
+                        baseInterest += AIStats.hp + ((AIStats.strength + 1) * 3) + ((AIStats.acuity + 1) * 3) + ((AIStats.ac + 1) * 3) + hate;
                         foreach (string status in entity.GetComponent<Harmable>().statusEffects)
                         {
                             if (hatedEntities.Contains(status))
@@ -278,20 +538,44 @@ namespace The_Ruins_of_Ipsus
                                 baseInterest += 5;
                             }
                         }
-                        return baseInterest;
                     }
+
+                    if (baseInterest - fear < 0 && fear > 0)
+                    {
+                        baseInterest = Math.Abs(baseInterest) + fear;
+                        return new InterestInputReturn(Input.Fear, baseInterest);
+                    }
+                    else if (baseInterest > 1 && hate > 0)
+                    {
+                        return new InterestInputReturn(Input.Hatred, baseInterest);
+                    }
+
+                    return new InterestInputReturn(Input.None, 0);
                 }
                 else
                 {
-                    return 0;
+                    return new InterestInputReturn(Input.None, 0);
                 }
             }
-            catch (Exception ex)
+            else if (entity.GetComponent<ID>().entityType == "Item")
             {
-                Log.Add($"{ex.Message}");
-                return 0;
+                return new InterestInputReturn(Input.None, 0);
+            }
+            else
+            {
+                return new InterestInputReturn(Input.None, 0);
             }
         }
         public AI() { }
+    }
+    public class InterestInputReturn
+    {
+        public AI.Input input { get; set; }
+        public int interest { get; set; }
+        public InterestInputReturn(AI.Input input, int interest) 
+        {
+            this.input = input;
+            this.interest = interest;
+        }
     }
 }

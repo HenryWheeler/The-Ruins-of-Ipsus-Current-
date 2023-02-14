@@ -1,4 +1,7 @@
-﻿namespace The_Ruins_of_Ipsus
+﻿using SadConsole.Renderers;
+using System.Collections.Generic;
+
+namespace The_Ruins_of_Ipsus
 {
     class AIActions
     {
@@ -40,7 +43,6 @@
         public static void TestPatrol(Entity AI)
         {
             PatrolFunction patrol = AI.GetComponent<PatrolFunction>();
-            patrol.lastPastInformation--;
             Vector2 positionToMove = DijkstraMaps.PathFromMap(AI, $"Patrol{patrol.patrolRoute}");
             AI.GetComponent<Movement>().Move(new Vector2(positionToMove.x, positionToMove.y));
             if (positionToMove.x == patrol.lastPosition.x && positionToMove.y == patrol.lastPosition.y)
@@ -53,9 +55,12 @@
                 {
                     foreach (string hated in CMath.ReturnAI(AI).hatedEntities)
                     {
-                        CMath.ReturnAI(World.tiles[positionToMove.x, positionToMove.y].actorLayer).hatedEntities.Add(hated);
+                        if (!CMath.ReturnAI(World.tiles[positionToMove.x, positionToMove.y].actorLayer).hatedEntities.Contains(hated))
+                        {
+                            CMath.ReturnAI(World.tiles[positionToMove.x, positionToMove.y].actorLayer).hatedEntities.Add(hated);
+                        }
                     }
-                    Log.Add("Someone spoke hatred");
+                    //Log.Add("Someone spoke hatred");
                 }
             }
             patrol.lastPosition = positionToMove;
@@ -117,29 +122,24 @@
 
             if (target == null)
             {
+                detail.currentInput = The_Ruins_of_Ipsus.AI.Input.Bored;
                 detail.interest = 0;
-                detail.Process();
-                return;
+                AI.GetComponent<TurnFunction>().EndTurn();
+                throw new System.Exception("No target present while engaging target.");
             }
             else
             {
                 int distanceToTarget = CMath.Distance(AI.GetComponent<Vector2>(), target.GetComponent<Vector2>());
 
-                Log.Add($"Distance is {distanceToTarget}");
-
                 if (distanceToTarget > detail.maxDistance)
                 {
                     //Move to Target 
                     MoveToTarget(AI, target);
-
-                    Log.Add($"Moves Forward 1");
                 }
                 else if (distanceToTarget < detail.minDistance)
                 {
                     //Move away from Target
-                    MoveToTarget(AI, target);
-
-                    Log.Add($"Moves Away 1");
+                    MoveAwayFromTarget(AI, target);
                 }
                 else
                 {
@@ -156,7 +156,7 @@
                     }
                     else if (distanceToTarget > detail.preferredDistance || detail.preferredDistance < distanceToTarget)
                     {
-                        if (World.random.Next(1, 101) + detail.interest > detail.baseInterest)
+                        if (World.random.Next(1, 101) + detail.interest < detail.baseInterest)
                         {
                             if (distanceToTarget > detail.preferredDistance)
                             {
@@ -166,7 +166,7 @@
                             else
                             {
                                 //Move away from Target
-                                MoveToTarget(AI, target);
+                                MoveAwayFromTarget(AI, target);
                             }
                         }
                         else
@@ -198,14 +198,58 @@
         }
         public static void MoveToTarget(Entity AI, Entity target)
         {
-            if (target.GetComponent<Faction>() != null)
+            if (target != null && target.GetComponent<Faction>() != null)
             {
-                Vector2 positionToMove = DijkstraMaps.PathFromMap(AI, target.GetComponent<Faction>().faction);
+                Vector2 positionToMove = DijkstraMaps.PathFromMap(AI, target.GetComponent<ID>().ReturnInstanceReference());
                 AI.GetComponent<Movement>().Move(new Vector2(positionToMove.x, positionToMove.y));
                 CMath.ReturnAI(AI).interest--;
             }
             else { AI.GetComponent<TurnFunction>().EndTurn(); }
         }
+        public static void MoveAwayFromTarget(Entity AI, Entity target)
+        {
+            if (target != null && target.GetComponent<Faction>() != null)
+            {
+                Vector2 positionToMove = DijkstraMaps.PathFromMap(AI, $"{target.GetComponent<ID>().ReturnInstanceReference()}-Fear");
+                AI.GetComponent<Movement>().Move(new Vector2(positionToMove.x, positionToMove.y));
+                CMath.ReturnAI(AI).interest--;
+            }
+            else { AI.GetComponent<TurnFunction>().EndTurn(); }
+        }
+        ///<summary>
+        ///Move AI to a random nearby location it can move onto, AI should have a random chance to decide not to move.
+        ///</summary>
+        public static void Wander(Entity AI)
+        {
+            List<Vector2> possibleLocations = new List<Vector2>();
+            AI AIComponent = CMath.ReturnAI(AI);
+            Vector2 currentLocation = AI.GetComponent<Vector2>();
+            Movement AIMoveComponent = AI.GetComponent<Movement>();
+
+            for (int x = currentLocation.x - 1; x < currentLocation.x + 2; x++)
+            {
+                for (int y = currentLocation.y - 1; y < currentLocation.y + 2; y++)
+                {
+                    if (AIMoveComponent.moveTypes.Contains(World.tiles[x, y].terrainType) && !possibleLocations.Contains(new Vector2(x, y)))
+                    {
+                        possibleLocations.Add(new Vector2(x, y));
+                    }
+                }
+            }
+
+            AIComponent.interest--;
+            if (AIComponent.interest <= 0) { AIComponent.currentInput = The_Ruins_of_Ipsus.AI.Input.Bored; }
+
+            if (possibleLocations.Count != 0) 
+            {
+                AIMoveComponent.Move(possibleLocations[World.random.Next(possibleLocations.Count)]);
+            }
+            else
+            {
+                AI.GetComponent<TurnFunction>().EndTurn();
+            }
+        }
+
         ///<summary>
         ///Check if AI has any special attacks it can use on its target, if not try for a melee attack, if that fails return false otherwise return true.
         ///</summary>
@@ -213,7 +257,7 @@
         {
             AI detail = CMath.ReturnAI(AI);
 
-            if (World.random.Next(0, 101) < detail.abilityChance && AI.GetComponent<Usable>() != null)
+            if (AI.GetComponent<Usable>() != null && World.random.Next(0, 101) < detail.abilityChance)
             {
                 OnUse abilityToUse = null;
                 foreach (OnUse ability in AI.GetComponent<Usable>().onUseComponents)
@@ -221,16 +265,22 @@
                     if (ability.itemType == "Offense" && ability.range >= distance)
                     {
                         if (abilityToUse == null) { abilityToUse = ability; }
-                        else if (abilityToUse.range > abilityToUse.range) { abilityToUse = ability; }
+                        else if (abilityToUse.range > ability.range) { abilityToUse = ability; }
                     }
                 }
-                UseAbility(abilityToUse, AI, target);
-                return true;
+                if (abilityToUse != null && CMath.PathBlocked(AI.GetComponent<Vector2>(), target.GetComponent<Vector2>(), abilityToUse.range))
+                {
+                    UseAbility(abilityToUse, AI, target);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else if (distance <= 1)
             {
                 AttackManager.MeleeAllStrike(AI, target);
-
                 return true;
             }
 

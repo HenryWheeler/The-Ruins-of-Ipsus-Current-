@@ -17,7 +17,7 @@ namespace The_Ruins_of_Ipsus
                 {
                     if (pronouns.present)
                     {
-                        Log.Add($"{entity.GetComponent<Description>().name} has freed {pronouns.reflexive} from {pronouns.possesive} restraints.");
+                        Log.Add($"The {entity.GetComponent<Description>().name} has freed {pronouns.reflexive} from {pronouns.possesive} restraints.");
                     }
                     else
                     {
@@ -29,11 +29,11 @@ namespace The_Ruins_of_Ipsus
                 {
                     if (pronouns.present)
                     {
-                        Log.Add($"{entity.GetComponent<Description>().name} struggles in {pronouns.possesive} restraints.");
+                        Log.Add($"The {entity.GetComponent<Description>().name} struggles in {pronouns.possesive} restraints.");
                     }
                     else
                     {
-                        Log.Add($"{entity.GetComponent<Description>().name} struggle in {pronouns.possesive} restraints.");
+                        Log.Add($"{entity.GetComponent<Description>().name} struggled in {pronouns.possesive} restraints.");
                     }
                 }
                 entity.GetComponent<TurnFunction>().EndTurn();
@@ -57,8 +57,22 @@ namespace The_Ruins_of_Ipsus
                         }
                         entity.GetComponent<TurnFunction>().EndTurn();
                         EntityManager.UpdateMap(entity);
+
+                        if (entity.GetComponent<PlayerComponent>() != null)
+                        {
+                            if (newTraversable.obstacleLayer != null)
+                            {
+                                Log.Add($"You see a {newTraversable.obstacleLayer.GetComponent<Description>().name}");
+                                Log.DisplayLog();
+                            }
+                            else if (newTraversable.itemLayer != null)
+                            {
+                                Log.Add($"You see a {newTraversable.itemLayer.GetComponent<Description>().name}");
+                                Log.DisplayLog();
+                            }
+                        }
                     }
-                    else if (CMath.ReturnAI(newTraversable.actorLayer) != null && !CMath.ReturnAI(newTraversable.actorLayer).hatedEntities.Contains(entity.GetComponent<Faction>().faction))
+                    else if (CMath.ReturnAI(newTraversable.actorLayer) != null && !CMath.ReturnAI(newTraversable.actorLayer).hatedEntities.Contains(entity.GetComponent<Faction>().faction) && CMath.ReturnAI(newTraversable.actorLayer).currentState != AI.State.Angry)
                     {
                         World.tiles[originalPosition.x, originalPosition.y].actorLayer = newTraversable.actorLayer;
                         newTraversable.actorLayer.GetComponent<Vector2>().x = entity.GetComponent<Vector2>().x;
@@ -74,6 +88,19 @@ namespace The_Ruins_of_Ipsus
                         }
                         entity.GetComponent<TurnFunction>().EndTurn();
                         EntityManager.UpdateMap(entity);
+
+                        if (entity.GetComponent<PlayerComponent>() != null)
+                        {
+                            PronounSet pronounSet = newTraversable.actorLayer.GetComponent<PronounSet>();
+                            if (pronounSet.present)
+                            {
+                                Log.Add($"You swap places with the {newTraversable.actorLayer.GetComponent<Description>().name}");
+                            }
+                            else
+                            {
+                                Log.Add($"You swap places with {newTraversable.actorLayer.GetComponent<Description>().name}");
+                            }
+                        }
                     }
                     else if (entity.GetComponent<PlayerComponent>() != null)
                     {

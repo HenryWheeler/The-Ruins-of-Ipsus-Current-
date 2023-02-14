@@ -17,8 +17,8 @@ namespace The_Ruins_of_Ipsus
                     if (!traversable.actorLayer.GetComponent<Stats>().immunities.Contains("Restraint"))
                     {
                         traversable.actorLayer.GetComponent<Harmable>().statusEffects.Add("Restrained");
-                        if (traversable.actorLayer.GetComponent<PronounSet>().present) { Log.AddToStoredLog(traversable.actorLayer.GetComponent<Description>().name + " has been restrained in the " + entity.GetComponent<Description>().name + "."); }
-                        else { Log.AddToStoredLog(traversable.actorLayer.GetComponent<Description>().name + " have been restrained in the " + entity.GetComponent<Description>().name + "."); }
+                        if (traversable.actorLayer.GetComponent<PronounSet>().present) { Log.Add(traversable.actorLayer.GetComponent<Description>().name + " has been restrained in the " + entity.GetComponent<Description>().name + "."); }
+                        else { Log.Add(traversable.actorLayer.GetComponent<Description>().name + " have been restrained in the " + entity.GetComponent<Description>().name + "."); }
                         traversable.obstacleLayer = null;
                     }
                 }

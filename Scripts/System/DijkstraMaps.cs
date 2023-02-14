@@ -24,7 +24,32 @@ namespace The_Ruins_of_Ipsus
         private static int gameMapHeight { get; set; }
         private static int[,] baseIntArray { get; set; }
         public static Dictionary<string, int[,]> maps = new Dictionary<string, int[,]>();
-        public static void CreateMap(Entity coordinate, string name)
+        public static void CreateReverseMap(string baseMap, string newName, int strength = 25)
+        {
+            ConcurrentQueue<Vector2> checkList = new ConcurrentQueue<Vector2>();
+            HashSet<Vector2> tempList = new HashSet<Vector2>();
+            int[,] intArray = (int[,])maps[baseMap].Clone();
+            for (int x = 0; x < gameMapWidth; x++)
+            {
+                for (int y = 0; y < gameMapHeight; y++)
+                {
+                    if (intArray[x, y] != 1000) { float reference = intArray[x, y] * -1.2f; intArray[x, y] = (int)reference; }
+                }
+            }
+
+            for (int o = 0; o < strength; o++)
+            {
+                for (int i = 0; i < checkList.Count; i++)
+                {
+                    checkList.TryDequeue(out Vector2 vector2);
+                    CheckNeighbors(intArray, tempList, checkList, vector2.x, vector2.y);
+                }
+                tempList.Clear();
+            }
+
+            AddMap(intArray, newName);
+        }
+        public static void CreateMap(Entity coordinate, string name, int strength = 500)
         {
             List<Entity> entity = new List<Entity>
             {

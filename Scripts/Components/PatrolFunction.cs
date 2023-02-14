@@ -11,7 +11,6 @@ namespace The_Ruins_of_Ipsus
     {
         public Vector2 lastPosition { get; set; }
         public int patrolRoute { get; set; }
-        public int lastPastInformation = 20;
         public PatrolFunction() 
         {
             lastPosition = new Vector2(0, 0);

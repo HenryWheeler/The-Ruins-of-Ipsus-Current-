@@ -13,6 +13,22 @@ namespace The_Ruins_of_Ipsus
         {
             switch (currentState)
             {
+                case State.Fearful:
+                    {
+                        if (interest <= 0) 
+                        {
+                            interest = baseInterest;
+                            currentInput = Input.Bored;
+                            Log.Add("Korbold calms down.");
+                            entity.GetComponent<TurnFunction>().EndTurn();
+                        }
+                        else
+                        {
+                            Log.Add("Korbold scared and running away! Interest:" + interest);
+                            AIActions.MoveAwayFromTarget(entity, target);
+                        }
+                        break;
+                    }
                 case State.Asleep:
                     {
                         AIActions.TestSleep(entity);
@@ -25,7 +41,7 @@ namespace The_Ruins_of_Ipsus
                     }
                 case State.Angry:
                     {
-                        AIActions.TestHuntAction(entity);
+                        AIActions.EngageEnemy(entity);
                         break;
                     }
             }
@@ -35,24 +51,26 @@ namespace The_Ruins_of_Ipsus
             transitions = new Dictionary<StateMachine, State>
             {
                 { new StateMachine(State.Asleep, Input.Noise), State.Patrolling },
+                { new StateMachine(State.Asleep, Input.Fear), State.Fearful },
                 { new StateMachine(State.Asleep, Input.Hurt), State.Angry },
                 { new StateMachine(State.Angry, Input.Tired), State.Asleep },
+                { new StateMachine(State.Angry, Input.Fear), State.Fearful },
+                { new StateMachine(State.Angry, Input.Bored), State.Patrolling },
                 { new StateMachine(State.Patrolling, Input.Hatred), State.Angry },
                 { new StateMachine(State.Patrolling, Input.Hurt), State.Angry },
-                { new StateMachine(State.Angry, Input.Bored), State.Patrolling },
                 { new StateMachine(State.Patrolling, Input.Tired), State.Asleep },
-                { new StateMachine(State.Bored, Input.Hatred), State.Angry }
+                { new StateMachine(State.Patrolling, Input.Fear), State.Fearful },
+                { new StateMachine(State.Fearful, Input.Hatred), State.Angry },
+                { new StateMachine(State.Fearful, Input.Hurt), State.Angry },
+                { new StateMachine(State.Fearful, Input.Bored), State.Patrolling },
+                { new StateMachine(State.Fearful, Input.Tired), State.Asleep },
             };
-        }
-        public GuardAI(List<string> favored, List<string> hated, int _baseInterest)
-        {
-            favoredEntities = favored;
-            hatedEntities = hated;
+            currentInput = Input.Bored;
             currentState = State.Patrolling;
-            interest = _baseInterest;
-            baseInterest = _baseInterest;
-            SetTransitions();
         }
+        public GuardAI(List<string> favoredEntities, List<string> hatedEntities, int baseInterest, int minDistance, int preferredDistance, int maxDistance, int abilityChance, int hate, int fear, int greed)
+            : base(favoredEntities, hatedEntities, baseInterest, minDistance, preferredDistance, maxDistance, abilityChance, hate, fear, greed)
+        { SetTransitions(); }
         public GuardAI()
         {
 

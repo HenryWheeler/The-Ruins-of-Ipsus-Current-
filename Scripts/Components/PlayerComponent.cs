@@ -2,6 +2,7 @@
 using SadConsole.Components;
 using SadConsole;
 using SadConsole.Input;
+using The_Ruins_of_Ipsus.Scripts.JsonDataManagement;
 
 namespace The_Ruins_of_Ipsus
 {
@@ -62,62 +63,59 @@ namespace The_Ruins_of_Ipsus
                 {
                     if (info.IsKeyPressed(Keys.I)) { InventoryManager.CloseInventory(); }
                     else if (info.IsKeyPressed(Keys.Escape)) { InventoryManager.CloseInventory(); }
-                    else if (info.IsKeyPressed(Keys.Up)) { InventoryManager.MoveSelection(-1); }
-                    else if (info.IsKeyPressed(Keys.Down)) { InventoryManager.MoveSelection(1); }
-                    else if (info.IsKeyPressed(Keys.NumPad8)) { InventoryManager.MoveSelection(-1); }
-                    else if (info.IsKeyPressed(Keys.NumPad2)) { InventoryManager.MoveSelection(1); }
-                    else if (info.IsKeyPressed(Keys.Left)) { InventoryManager.MovePage(-1); }
-                    else if (info.IsKeyPressed(Keys.Right)) { InventoryManager.MovePage(1); }
-                    else if (info.IsKeyPressed(Keys.NumPad4)) { InventoryManager.MovePage(-1); }
-                    else if (info.IsKeyPressed(Keys.NumPad6)) { InventoryManager.MovePage(1); }
+                    else if (info.IsKeyPressed(Keys.Up)) { InventoryManager.MoveSelection(true); }
+                    else if (info.IsKeyPressed(Keys.Down)) { InventoryManager.MoveSelection(false); }
+                    else if (info.IsKeyPressed(Keys.NumPad8)) { InventoryManager.MoveSelection(true); }
+                    else if (info.IsKeyPressed(Keys.NumPad2)) { InventoryManager.MoveSelection(false); }
+                    else if (info.IsKeyPressed(Keys.Left)) { InventoryManager.MoveSelection(true); }
+                    else if (info.IsKeyPressed(Keys.Right)) { InventoryManager.MoveSelection(false); }
+                    else if (info.IsKeyPressed(Keys.NumPad4)) { InventoryManager.MoveSelection(true); }
+                    else if (info.IsKeyPressed(Keys.NumPad6)) { InventoryManager.MoveSelection(false); }
                     else if (info.IsKeyPressed(Keys.D))
                     {
                         if (Program.player.GetComponent<Inventory>().inventory.Count != 0)
                         {
-                            InventoryManager.DropItem(Program.player, InventoryManager.inventoryDisplay[InventoryManager.currentPage][InventoryManager.selection]);
+                            InventoryManager.DropItem(Program.player, InventoryManager.inventoryDisplay[InventoryManager.selection]);
                         }
                     }
                     else if (info.IsKeyPressed(Keys.E))
                     {
                         if (Program.player.GetComponent<Inventory>().inventory.Count != 0)
                         {
-                            int first = InventoryManager.currentPage;
                             int second = InventoryManager.selection;
-                            if (InventoryManager.inventoryDisplay[first][second].GetComponent<Equippable>() != null)
+                            if (InventoryManager.inventoryDisplay[second].GetComponent<Equippable>() != null)
                             {
-                                if (InventoryManager.inventoryDisplay[first][second].GetComponent<Equippable>().equipped)
+                                if (InventoryManager.inventoryDisplay[second].GetComponent<Equippable>().equipped)
                                 {
-                                    InventoryManager.UnequipItem(Program.player, InventoryManager.inventoryDisplay[first][second], true);
+                                    InventoryManager.UnequipItem(Program.player, InventoryManager.inventoryDisplay[second], true);
                                 }
                                 else
                                 {
-                                    InventoryManager.EquipItem(Program.player, InventoryManager.inventoryDisplay[first][second]);
+                                    InventoryManager.EquipItem(Program.player, InventoryManager.inventoryDisplay[second]);
                                 }
                             }
-                            else { CMath.DisplayToConsole(Log.console, "You cannot equip the " + InventoryManager.inventoryDisplay[first][second].GetComponent<Description>().name + ".", 1, 1); }
+                            //else { CMath.DisplayToConsole(Program.logConsole), "You cannot equip the " + InventoryManager.inventoryDisplay[first][second].GetComponent<Description>().name + ".", 1, 1); }
                         }
                     }
                     else if (info.IsKeyPressed(Keys.U))
                     {
                         if (Program.player.GetComponent<Inventory>().inventory.Count != 0)
                         {
-                            int first = InventoryManager.currentPage;
                             int second = InventoryManager.selection;
-                            if (InventoryManager.inventoryDisplay[first][second].GetComponent<Usable>() != null)
+                            if (InventoryManager.inventoryDisplay[second].GetComponent<Usable>() != null)
                             {
-                                TargetReticle.targetWeapon = InventoryManager.inventoryDisplay[first][second];
-                                InventoryManager.UseItem(Program.player, InventoryManager.inventoryDisplay[first][second]);
+                                TargetReticle.targetWeapon = InventoryManager.inventoryDisplay[second];
+                                InventoryManager.UseItem(Program.player, InventoryManager.inventoryDisplay[second]);
                             }
-                            else { CMath.DisplayToConsole(Log.console, "You cannot use the " + InventoryManager.inventoryDisplay[first][second].GetComponent<Description>().name + ".", 1, 1); }
+                            //else { CMath.DisplayToConsole(Program.logConsole, "You cannot use the " + InventoryManager.inventoryDisplay[first][second].GetComponent<Description>().name + ".", 1, 1); }
                         }
                     }
                     else if (info.IsKeyPressed(Keys.T))
                     {
                         if (Program.player.GetComponent<Inventory>().inventory.Count != 0)
                         {
-                            int first = InventoryManager.currentPage;
                             int second = InventoryManager.selection;
-                            TargetReticle.targetWeapon = InventoryManager.inventoryDisplay[first][second];
+                            TargetReticle.targetWeapon = InventoryManager.inventoryDisplay[second];
                             TargetReticle.StartTargeting(true, true);
                         }
                     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace The_Ruins_of_Ipsus
 {
     [Serializable]
-    class DragonAI : AI
+    class BeastAI : AI
     {
         public override void ExecuteAction()
         {
@@ -15,12 +15,20 @@ namespace The_Ruins_of_Ipsus
             {
                 case State.Curious:
                     {
-                        entity.GetComponent<TurnFunction>().EndTurn();
+                        if (target != null)
+                        {
+                            AIActions.MoveToTarget(entity, target);
+                        }
+                        else
+                        {
+                            currentInput = Input.Bored;
+                            entity.GetComponent<TurnFunction>().EndTurn();
+                        }
                         break;
                     }
                 case State.Bored:
                     {
-                        entity.GetComponent<TurnFunction>().EndTurn();
+                        AIActions.Wander(entity);
                         break;
                     }
                 case State.Angry:
@@ -43,10 +51,10 @@ namespace The_Ruins_of_Ipsus
                 { new StateMachine(State.Bored, Input.Hatred), State.Angry },
             };
         }
-        public DragonAI(List<string> favoredEntities, List<string> hatedEntities, int baseInterest, int minDistance, int preferredDistance, int maxDistance, int abilityChance, int hate, int fear, int greed)
+        public BeastAI(List<string> favoredEntities, List<string> hatedEntities, int baseInterest, int minDistance, int preferredDistance, int maxDistance, int abilityChance, int hate, int fear, int greed)
             : base(favoredEntities, hatedEntities, baseInterest, minDistance, preferredDistance, maxDistance, abilityChance, hate, fear, greed)
         { SetTransitions(); currentState = State.Bored; }
-        public DragonAI()
+        public BeastAI()
         {
 
         }

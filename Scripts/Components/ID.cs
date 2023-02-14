@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,10 +10,15 @@ namespace The_Ruins_of_Ipsus
     [Serializable]
     class ID: Component
     {
-        public int id { get; set; }
-        public ID(int _id)
+        public string entityType { get; set; }
+        public int temporaryID = 0;
+        public string ReturnInstanceReference()
         {
-            id = _id; 
+            return $"{entity.GetComponent<Description>().name}-{temporaryID}";
+        }
+        public ID(string type)
+        {
+            entityType = type;
         }
         public ID() { }
     }

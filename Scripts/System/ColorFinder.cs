@@ -22,6 +22,7 @@ namespace The_Ruins_of_Ipsus
                 case "Dark_Blue": return Color.DarkBlue;
                 case "Yellow": return Color.Yellow;
                 case "Light_Yellow": return Color.LightYellow;
+                case "Lime": return Color.Lime;
                 case "Green": return Color.Green;
                 case "Light_Green": return Color.LightGreen;
                 case "Dark_Green": return Color.DarkGreen;
@@ -37,6 +38,7 @@ namespace The_Ruins_of_Ipsus
                 case "Brown": return Color.Brown;
                 case "Pale": return Color.LightPink;
                 case "Pink": return Color.Pink;
+                case "Steel_Blue": return Color.SteelBlue;
             }
             return Color.Black;
         }

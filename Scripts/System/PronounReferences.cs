@@ -13,7 +13,7 @@ namespace The_Ruins_of_Ipsus
         {
             pronounSets.Add("Player", new PronounSet("you", "you", "your", "yourself", false));
             pronounSets.Add("Masculine", new PronounSet("he", "him", "his", "himself"));
-            pronounSets.Add("Feminine", new PronounSet("she", "her", "hers", "herself"));
+            pronounSets.Add("Feminine", new PronounSet("she", "her", "her", "herself"));
             pronounSets.Add("Nueter", new PronounSet("it", "it", "its", "itself"));
             pronounSets.Add("NueterPlural", new PronounSet("they", "them", "theirs", "themself"));
         }

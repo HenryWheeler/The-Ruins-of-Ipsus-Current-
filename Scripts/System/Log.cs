@@ -7,13 +7,13 @@ namespace The_Ruins_of_Ipsus
 {
     public class Log
     {
-        public static TitleConsole console;
         private static Queue<string> log = new Queue<string>();
         private static int maxLogCount = 15;
+        private static string lastLog { get; set; }
+        private static int repeatCount = 1;
         private static string spacer { get; set; }
-        public Log(TitleConsole _console)
+        public Log()
         {
-            console = _console;
             spacer = " + ";
             for (int i = 0; i < maxLogCount; i++)
             {
@@ -22,7 +22,7 @@ namespace The_Ruins_of_Ipsus
         }
         public static void DisplayLog()
         {
-            console.Clear();
+            Program.logConsole.Clear();
 
             int m = 0;
             int y = 0;
@@ -43,8 +43,8 @@ namespace The_Ruins_of_Ipsus
                         if (split[0].Contains("+")) { y += 2 + m; c = 1; }
                         else
                         {
-                            if (c + split[0].Length > console.Width - 5) { y += 2 + m; c = 1; }
-                            console.Print(c + 1, y, split[0], Color.White);
+                            if (c + split[0].Length > Program.logConsole.Width - 5) { y += 2 + m; c = 1; }
+                            Program.logConsole.Print(c + 1, y, split[0], Color.White);
                             c += split[0].Length + 1;
                         }
                     }
@@ -53,15 +53,14 @@ namespace The_Ruins_of_Ipsus
                         if (split[1].Contains("+")) { y += 2 + m; c = 1; }
                         else
                         {
-                            if (c + split[0].Length > console.Width - 5) { y += 2 + m; c = 1; }
-                            console.Print(c + 1, y, split[1], ColorFinder.ColorPicker(split[0]));
+                            if (c + split[0].Length > Program.logConsole.Width - 5) { y += 2 + m; c = 1; }
+                            Program.logConsole.Print(c + 1, y, split[1], ColorFinder.ColorPicker(split[0]));
                             c += split[1].Length + 1;
                         }
                     }
                 }
             }
-            Renderer.CreateConsoleBorder(console, true);
-
+            Renderer.CreateConsoleBorder(Program.logConsole, true);
         }
         public static void OutputParticleLog(string log, string color, Vector2 position)
         {
@@ -91,7 +90,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     new Vector2(0, 0),
                                     new Draw(color, "Black", characters[i]),
-                                    new ParticleComponent(World.random.Next(9, 12), 2, "North", 1, new Draw[] { new Draw(color, "Black", characters[i]) })
+                                    new ParticleComponent(World.random.Next(12, 15), "North", 2, new Draw[] { new Draw(color, "Black", characters[i]) })
                                 });
                     Renderer.AddParticle(firstX, position.y, particle);
                 }
@@ -99,22 +98,36 @@ namespace The_Ruins_of_Ipsus
                 firstX++;
             }
         }
-        public static void AddToStoredLog(string logAdd)
-        {
-            string newString = spacer + logAdd;
-            log.Enqueue(newString);
-            if (log.Count > maxLogCount)
-            {
-                log.Dequeue();
-            }
-        }
         public static void Add(string logAdd)
         {
-            log.Enqueue(spacer + logAdd);
-            if (log.Count > maxLogCount)
+            if (logAdd == lastLog)
             {
-                log.Dequeue();
+                repeatCount++;
+
+                string[] temp = log.ToArray();
+                log.Clear();
+                temp[temp.Length - 1] = $"{spacer}{logAdd} Yellow*x{repeatCount}";
+
+                foreach (string s in temp)
+                {
+                    log.Enqueue(s);
+                }
+
+                if (log.Count > maxLogCount)
+                {
+                    log.Dequeue();
+                }
             }
+            else
+            {
+                repeatCount = 1;
+                log.Enqueue(spacer + logAdd);
+                if (log.Count > maxLogCount)
+                {
+                    log.Dequeue();
+                }
+            }
+            lastLog = logAdd;
         }
     }
 }

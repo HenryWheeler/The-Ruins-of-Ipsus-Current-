@@ -36,7 +36,7 @@ namespace The_Ruins_of_Ipsus
                 {
                     Log.Add($"{attacker.GetComponent<Description>().name} hit {pronounSet.reflexive} for {dmg} damage with {pronounSet.possesive} {weaponName}.");
                 }
-                else if (pronounSet != null && pronounSet.present)
+                else if (pronounSet != null && !pronounSet.present)
                 {
                     Log.Add($"{attacker.GetComponent<Description>().name} hit {entity.GetComponent<Description>().name} for {dmg} damage with {pronounSet.possesive} {weaponName}.");
                 }
@@ -49,13 +49,13 @@ namespace The_Ruins_of_Ipsus
                     Log.Add($"{attacker.GetComponent<Description>().name} hit you for {dmg} damage with the {weaponName}.");
                 }
 
+                Vector2 vector2 = entity.GetComponent<Vector2>();
                 Entity hitParticle = new Entity(new List<Component>
                         {
                             new Vector2(0, 0),
                             new Draw("Red", "Black", (char)3),
-                            new ParticleComponent(2, 1, "None", 1, new Draw[] { new Draw("Red", "Black", (char)3) })
+                            new ParticleComponent(30, "Attached", 1, new Draw[] { new Draw("Red", "Black", (char)3) }, vector2)
                         });
-                Vector2 vector2 = entity.GetComponent<Vector2>();
                 Renderer.AddParticle(vector2.x, vector2.y, hitParticle);
             }
         }
@@ -86,13 +86,13 @@ namespace The_Ruins_of_Ipsus
         {
             if (entity.GetComponent<PlayerComponent>() == null)
             {
+                Vector2 vector2 = entity.GetComponent<Vector2>();
                 Entity hitParticle = new Entity(new List<Component>
                         {
                             new Vector2(0, 0),
                             new Draw("Red", "Black", 'X'),
-                            new ParticleComponent(2, 1, "None", 1, new Draw[] { new Draw("Red", "Black", 'X') })
+                            new ParticleComponent(30, "Attached", 1, new Draw[] { new Draw("Red", "Black", 'X') }, vector2)
                         });
-                Vector2 vector2 = entity.GetComponent<Vector2>();
                 Renderer.AddParticle(vector2.x, vector2.y, hitParticle);
                 Log.Add($"{entity.GetComponent<Description>().name} has died.");
 

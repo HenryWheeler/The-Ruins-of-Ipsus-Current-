@@ -1,8 +1,0 @@
-﻿Range Models:
-
-SingleTarget,
-Line,
-Cone,
-Sphere,
-Cube,
-All,

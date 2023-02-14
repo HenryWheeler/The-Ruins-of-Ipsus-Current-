@@ -52,6 +52,7 @@ namespace The_Ruins_of_Ipsus
                 InventoryManager.OpenInventory(); 
             }
 
+            World.ClearSFX();
             Renderer.MoveCamera(player.GetComponent<Vector2>());
             Renderer.DrawMapToScreen();
         }
@@ -216,9 +217,9 @@ namespace The_Ruins_of_Ipsus
                     }
                 }
             }
-            CMath.DisplayToConsole(Log.console, $"Use/Throw Item Yellow*[T/U/Enter]", 0, 2, 1, 6, false);
-            CMath.DisplayToConsole(Log.console, $"Move Reticle Yellow*[Arrow Yellow*Keys]", 0, 2, 1, 9, false);
-            CMath.DisplayToConsole(Log.console, $"Cancel Target Yellow*[S/Escape]", 0, 2, 1, 12, false);
+            CMath.DisplayToConsole(Program.logConsole, $"Use/Throw Item Yellow*[T/U/Enter]", 0, 2, 1, 6, false);
+            CMath.DisplayToConsole(Program.logConsole, $"Move Reticle Yellow*[Arrow Yellow*Keys]", 0, 2, 1, 9, false);
+            CMath.DisplayToConsole(Program.logConsole, $"Cancel Target Yellow*[S/Escape]", 0, 2, 1, 12, false);
 
             Renderer.MoveCamera(new Vector2(position.x, position.y));
             Renderer.DrawMapToScreen();
@@ -253,7 +254,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Yellow", "Black", 'X');
                                 }
-                                CMath.DisplayToConsole(Log.console, "", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                             }
                             else
@@ -262,7 +263,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Gray", "Black", 'X');
                                 }
-                                CMath.DisplayToConsole(Log.console, "Your target is blocked.", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "Your target is blocked.", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                                 check = false;
                             }
@@ -273,7 +274,7 @@ namespace The_Ruins_of_Ipsus
                             {
                                 World.sfx[x, y] = new("Gray", "Black", 'X');
                             }
-                            CMath.DisplayToConsole(Log.console, "Your target is out of range.", 1, 1);
+                            CMath.DisplayToConsole(Program.logConsole, "Your target is out of range.", 1, 1);
                             Renderer.CreateConsoleBorder(Program.logConsole, true);
                             check = false;
                         }
@@ -288,7 +289,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Yellow", "Black", '.');
                                 }
-                                CMath.DisplayToConsole(Log.console, "", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                             }
                             else
@@ -297,7 +298,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Gray", "Black", '.');
                                 }
-                                CMath.DisplayToConsole(Log.console, "Your target is blocked.", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "Your target is blocked.", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                                 check = false;
                             }
@@ -308,7 +309,7 @@ namespace The_Ruins_of_Ipsus
                             {
                                 World.sfx[x, y] = new("Gray", "Black", '.');
                             }
-                            CMath.DisplayToConsole(Log.console, "Your target is out of range.", 1, 1);
+                            CMath.DisplayToConsole(Program.logConsole, "Your target is out of range.", 1, 1);
                             Renderer.CreateConsoleBorder(Program.logConsole, true);
                             check = false;
                         }
@@ -335,7 +336,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Yellow", "Black", 'X');
                                 }
-                                CMath.DisplayToConsole(Log.console, "", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                             }
                             else
@@ -344,7 +345,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Gray", "Black", 'X');
                                 }
-                                CMath.DisplayToConsole(Log.console, "Your target is blocked.", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "Your target is blocked.", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                                 check = false;
                             }
@@ -355,7 +356,7 @@ namespace The_Ruins_of_Ipsus
                             {
                                 World.sfx[x, y] = new("Gray", "Black", 'X');
                             }
-                            CMath.DisplayToConsole(Log.console, "Your target is out of range.", 1, 1);
+                            CMath.DisplayToConsole(Program.logConsole, "Your target is out of range.", 1, 1);
                             Renderer.CreateConsoleBorder(Program.logConsole, true);
                             check = false;
                         }
@@ -370,7 +371,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Yellow", "Black", '.');
                                 }
-                                CMath.DisplayToConsole(Log.console, "", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                             }
                             else
@@ -379,7 +380,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     World.sfx[x, y] = new("Gray", "Black", '.');
                                 }
-                                CMath.DisplayToConsole(Log.console, "Your target is blocked.", 1, 1);
+                                CMath.DisplayToConsole(Program.logConsole, "Your target is blocked.", 1, 1);
                                 Renderer.CreateConsoleBorder(Program.logConsole, true);
                                 check = false;
                             }
@@ -390,7 +391,7 @@ namespace The_Ruins_of_Ipsus
                             {
                                 World.sfx[x, y] = new("Gray", "Black", '.');
                             }
-                            CMath.DisplayToConsole(Log.console, "Your target is out of range.", 1, 1);
+                            CMath.DisplayToConsole(Program.logConsole, "Your target is out of range.", 1, 1);
                             Renderer.CreateConsoleBorder(Program.logConsole, true);
                             check = false;
                         }
@@ -431,11 +432,12 @@ namespace The_Ruins_of_Ipsus
                 {
                     World.ClearSFX();
                     StopTargeting();
+                    InventoryManager.CloseInventory();
                     return new Vector2(position.x, position.y);
                 }
-                else { CMath.DisplayToConsole(Log.console, "Your target is blocked.", 1, 1); Renderer.CreateConsoleBorder(Program.logConsole, true); return null; }
+                else { CMath.DisplayToConsole(Program.logConsole, "Your target is blocked.", 1, 1); Renderer.CreateConsoleBorder(Program.logConsole, true); return null; }
             }
-            else { CMath.DisplayToConsole(Log.console, "Your target is out of range.", 1, 1); Renderer.CreateConsoleBorder(Program.logConsole, true); return null; }
+            else { CMath.DisplayToConsole(Program.logConsole, "Your target is out of range.", 1, 1); Renderer.CreateConsoleBorder(Program.logConsole, true); return null; }
         }
         public static void ThrowWeapon(Entity weaponUsed)
         {

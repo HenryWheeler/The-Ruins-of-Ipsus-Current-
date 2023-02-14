@@ -5,7 +5,7 @@ namespace The_Ruins_of_Ipsus
     [Serializable]
     public class SummonActorOnUse : OnUse
     {
-        public int[] summonedCreatures { get; set; }
+        public string[] summonedCreatures { get; set; }
         public override void Use(Entity entity, Vector2 target = null)
         {
             if (entity.GetComponent<PlayerComponent>() != null)
@@ -40,7 +40,7 @@ namespace The_Ruins_of_Ipsus
                 }
             }
         }
-        public SummonActorOnUse(int[] _summonedCreatures, int amount, int _range, bool _singleUse = true)
+        public SummonActorOnUse(string[] _summonedCreatures, int amount, int _range, bool _singleUse = true)
         {
             summonedCreatures = _summonedCreatures;
             strength = amount;
@@ -54,12 +54,12 @@ namespace The_Ruins_of_Ipsus
     [Serializable]
     public class SummonActorOnThrow : OnThrow
     {
-        public int[] summonedCreatures { get; set; }
+        public string[] summonedCreatures { get; set; }
         public override void Throw(Entity user, Vector2 landingSite)
         {
             SpecialEffectManager.SummonActor(user, landingSite, summonedCreatures, strength);
         }
-        public SummonActorOnThrow(int[] _summonedCreatures, int amount)
+        public SummonActorOnThrow(string[] _summonedCreatures, int amount)
         {
             summonedCreatures = _summonedCreatures;
             strength = amount;

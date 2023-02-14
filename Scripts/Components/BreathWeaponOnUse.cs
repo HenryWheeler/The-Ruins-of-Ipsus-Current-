@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace The_Ruins_of_Ipsus
 {
@@ -46,5 +47,21 @@ namespace The_Ruins_of_Ipsus
             rangeModel = "Cone";
         }
         public BreathWeaponOnUse() { }
+    }
+    class BreathWeaponOnThrow : OnThrow
+    {
+        public string type { get; set; }
+        public override void Throw(Entity user, Vector2 landingSite)
+        {
+            SpecialEffectManager.BreathWeapon(entity, landingSite, strength, 1000, type);
+        }
+        public BreathWeaponOnThrow(int _strength, string _type)
+        {
+            strength = _strength;
+            type = _type;
+            rangeModel = "Cone";
+            itemType = "Offense";
+        }
+        public BreathWeaponOnThrow() { }
     }
 }

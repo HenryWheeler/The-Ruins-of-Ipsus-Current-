@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace The_Ruins_of_Ipsus
+namespace The_Ruins_of_Ipsus.Scripts.JsonDataManagement
 {
     public class SaveDataManager
     {
@@ -50,7 +50,7 @@ namespace The_Ruins_of_Ipsus
                     visibility[vector2.x, vector2.y] = visibility1;
                     if (tile.actorLayer != null)
                     {
-                        if (tile.actorLayer.GetComponent<ID>().id != 0)
+                        if (tile.actorLayer.GetComponent<PlayerComponent>() == null)
                         {
                             tile.actorLayer.ClearImbeddedComponents();
                             AI AI = CMath.ReturnAI(tile.actorLayer);
@@ -66,7 +66,7 @@ namespace The_Ruins_of_Ipsus
 
             Program.player.ClearImbeddedComponents();
 
-            SaveData data = new SaveData(World.depth, World.seedInt, RecordKeeper.record, Program.player, actors, items, terrain, visibility);
+            SaveData data = new SaveData(World.depth, World.seedInt, World.difficulty, RecordKeeper.record, Program.player, actors, items, terrain, visibility);
 
             string saveData = JsonConvert.SerializeObject(data, options);
             File.WriteAllText(Path.Combine(path, "SaveFile.json"), saveData);
@@ -86,17 +86,19 @@ namespace The_Ruins_of_Ipsus
     {
         public int depth { get; set; }
         public int seed { get; set; }
+        public int difficulty { get; set; }
         public Record records { get; set; }
         public Entity player { get; set; }
         public List<Entity> actors = new List<Entity>();
         public List<Entity> items = new List<Entity>();
         public List<Entity> terrain = new List<Entity>();
         public Visibility[,] visibility { get; set; }
-        public SaveData(int _depth, int _random, Record _records, Entity _player, List<Entity> _actors, List<Entity> _items, List<Entity> _terrain, Visibility[,] _visibility)
+        public SaveData(int _depth, int _random, int _difficulty, Record _records, Entity _player, List<Entity> _actors, List<Entity> _items, List<Entity> _terrain, Visibility[,] _visibility)
         {
             depth = _depth;
             seed = _random;
             records = _records;
+            difficulty = _difficulty;
             player = _player;
             actors = _actors;
             items = _items;

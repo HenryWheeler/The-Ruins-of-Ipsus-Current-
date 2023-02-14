@@ -1,0 +1,108 @@
+﻿A list of all Spawn Tables:
+Environment followed by difficulty
+
+1. Shore-1
+2. Dungeon-1
+3. Cave-1
+4. Forest-1
+5. Field-1
+
+
+Range Models:
+
+SingleTarget,
+Line,
+Cone,
+Sphere,
+Cube,
+All,
+
+
+Entity Types/Categories:
+
+Actor,
+Item,
+Obstacle,
+
+
+List of Damage/Status Effect Proper Names
+
+Status Effects:
+1. Poison : Green*Poisoned
+2. Restraint : Restrained
+3. Stoning : Gray*Stoned
+4. Polymorph : Purple*Polymorphed
+
+Damage Types:
+1. Piercing
+2. Slashing
+3. Bludgeoning
+4. Fire
+5. Frost
+6. Lightning
+
+Item Types:
+1. Offense
+2. Movement
+3. Support
+
+
+List of factions in game:
+
+1. Evil Humanoid,
+2. Good Humanoid,
+2. Beast,
+3. Insect,
+4. Player,
+5. Horror,
+6. Elemental,
+7. Plant,
+8. Oozeling,
+
+
+Id Listing
+
+Entity Listing:
+
+
+Actors:
+
+Player Character
+Mimic
+Djinn
+Korbold (My offbrand version of a Kobold)
+
+Weapon Types:
+
+Knife/Dagger: Does 1d(3++), lightest weapon "Piercing"
+Shortsword: Does 1d(6++), medium weight "Slashing"
+Longsword: Does 1d(8++), medium high weight "Slashing"
+Axe: 2d(2++) "Slashing"
+Club/Hammer/Mace: 2d(2++) medium high weight "Bludgeoning"
+
+Item Rarities:
+
+1. Rusted
+2. Copper
+3. Bronze
+4. Iron
+
+
+Items:
+
+Rusted Knife
+Rusted Shortsword
+
+Potion of Explosion
+Scroll of Lightning
+Scroll of Mapping
+
+
+Obstacles:
+
+Door
+Debris 1, Debris 2, Debris 3 (A decorative obstacle, debris just has small visual differences to it.)
+
+
+Spawn Table Details
+https://docs.google.com/spreadsheets/d/1TH5W0y3o4pdK8qmCcTnQxsWFkOWpJvWmVhF5SWmDWbk/edit#gid=0

@@ -25,7 +25,7 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(coordinate.x, coordinate.y),
                             frame1,
-                            new ParticleComponent(World.random.Next(11, 14), World.random.Next(3, 5), "None", 2, frames)
+                            new ParticleComponent(World.random.Next(11, 14), "None", 2, frames)
                         });
                 Renderer.AddParticle(coordinate.x, coordinate.y, particle);
                 //particles.Add(particle);
@@ -45,14 +45,14 @@ namespace The_Ruins_of_Ipsus
                 }
             }
         }
-        public static void SummonActor(Entity user, Vector2 targetLocation, int[] actors, int amountToSummon)
+        public static void SummonActor(Entity user, Vector2 targetLocation, string[] actors, int amountToSummon)
         {
             for (int i = 0; i < amountToSummon; i++)
             {
-                foreach (int id in actors)
+                foreach (string id in actors)
                 {
                     Vector2 target = CMath.ReturnNearestValidCoordinate("Actor", targetLocation);
-                    EntityManager.CreateEntity(target, id, false);
+                    EntityManager.CreateEntityFromFile(target, id);
 
                     Draw frame1 = new Draw("Blue", "Black", '(');
                     Draw frame2 = new Draw("Blue", "Black", '-');
@@ -67,7 +67,7 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(coordinate.x, coordinate.y),
                             frame1,
-                            new ParticleComponent(World.random.Next(8, 10), 5, "Wander", 5, frames)
+                            new ParticleComponent(World.random.Next(8, 10), "Wander", 5, frames)
                         });
                         particles.Add(particle);
                     }
@@ -93,7 +93,7 @@ namespace The_Ruins_of_Ipsus
                                 {
                                     new Vector2(coordinate.x, coordinate.y),
                                     frame1,
-                                    new ParticleComponent(World.random.Next(22, 26), 5, "None", 1, frames)
+                                    new ParticleComponent(World.random.Next(22, 26), "None", 1, frames)
                                 });
                             particles.Add(particle);
                         }
@@ -109,6 +109,39 @@ namespace The_Ruins_of_Ipsus
                             if (World.tiles[coordinate.x, coordinate.y].actorLayer != null)
                             {
                                 AttackManager.Attack(originator, World.tiles[coordinate.x, coordinate.y].actorLayer, new AttackFunction(strength, strength, strength, strength, "Fire"), "Fire");
+                            }
+                        }
+                        break;
+                    }
+                case "Frost":
+                    {
+                        Draw frame1 = new Draw("Blue", "Black", 'x');
+                        Draw frame2 = new Draw("Light_Blue", "Black", '+');
+                        Draw frame3 = new Draw("Blue", "Black", (char)176);
+                        Draw[] frames = new Draw[3] { frame1, frame2, frame3 };
+                        List<Vector2> coordinates = RangeModels.ConeRangeModel(originator.GetComponent<Vector2>(), target, strength, range);
+                        foreach (Vector2 coordinate in coordinates)
+                        {
+                            Entity particle = new Entity(new List<Component>
+                                {
+                                    new Vector2(coordinate.x, coordinate.y),
+                                    frame1,
+                                    new ParticleComponent(World.random.Next(22, 26), "None", 1, frames)
+                                });
+                            particles.Add(particle);
+                        }
+
+                        Renderer.StartAnimation(particles);
+
+                        foreach (var coordinate in coordinates)
+                        {
+                            if (World.tiles[coordinate.x, coordinate.y].obstacleLayer != null)
+                            {
+                                World.tiles[coordinate.x, coordinate.y].obstacleLayer = null;
+                            }
+                            if (World.tiles[coordinate.x, coordinate.y].actorLayer != null)
+                            {
+                                AttackManager.Attack(originator, World.tiles[coordinate.x, coordinate.y].actorLayer, new AttackFunction(strength, strength, strength, strength, "Frost"), "Frost");
                             }
                         }
                         break;
@@ -130,7 +163,7 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(coordinate.x, coordinate.y),
                             frame1,
-                            new ParticleComponent(World.random.Next(22, 26), 5, "None", 1, frames)
+                            new ParticleComponent(World.random.Next(22, 26), "None", 1, frames)
                         });
                 particles.Add(particle);
 
@@ -140,7 +173,7 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(coordinate.x + World.random.Next(-1, 2), coordinate.y + World.random.Next(-1, 2)),
                             frame1,
-                            new ParticleComponent(World.random.Next(22, 26), 5, "None", 1, frames)
+                            new ParticleComponent(World.random.Next(22, 26), "None", 1, frames)
                         });
                     particles.Add(particle2);
                 }
@@ -175,7 +208,7 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(coordinate.x, coordinate.y),
                             new Draw("Pink", "Black", 'X'),
-                            new ParticleComponent(4, 1, "None", 1, new Draw[] { new Draw("Pink", "Black", 'X')})
+                            new ParticleComponent(4, "None", 1, new Draw[] { new Draw("Pink", "Black", 'X')})
                         });
                     particles.Add(particle);
                 }
@@ -185,7 +218,7 @@ namespace The_Ruins_of_Ipsus
                     {
                         new Vector2(coordinate.x, coordinate.y),
                         new Draw("Pink", "Black", '*'),
-                        new ParticleComponent(4, 1, "None", 1, new Draw[] { new Draw("Pink", "Black", '*')})
+                        new ParticleComponent(4, "None", 1, new Draw[] { new Draw("Pink", "Black", '*')})
                     });
                     particles.Add(particle);
                 }
@@ -217,7 +250,7 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(coordinate.x, coordinate.y),
                             frame1,
-                            new ParticleComponent((int)CMath.Distance(origin.x, origin.y, coordinate.x, coordinate.y), 4, "None", 0, frames)
+                            new ParticleComponent((int)CMath.Distance(origin.x, origin.y, coordinate.x, coordinate.y), "None", 0, frames)
                         });
                     particles.Add(particle);
                 }

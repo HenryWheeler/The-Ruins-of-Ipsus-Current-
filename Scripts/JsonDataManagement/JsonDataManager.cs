@@ -2,8 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
-namespace The_Ruins_of_Ipsus
+namespace The_Ruins_of_Ipsus.Scripts.JsonDataManagement
 {
     public class JsonDataManager
     {
@@ -18,8 +19,11 @@ namespace The_Ruins_of_Ipsus
                 Formatting = Formatting.Indented,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             };
-            entityPath = Path.Combine(Environment.CurrentDirectory, "EntityData");
-            tablePath = Path.Combine(Environment.CurrentDirectory, "TableData");
+            entityPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "JsonData/EntityData");
+            tablePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "JsonData/TableData");
+
+            if (!Directory.Exists(entityPath)) Directory.CreateDirectory(entityPath);
+            if (!Directory.Exists(tablePath)) Directory.CreateDirectory(tablePath);
         }
         public static List<Entity> PullAllEntities()
         {
@@ -37,16 +41,16 @@ namespace The_Ruins_of_Ipsus
             }
             return pullData;
         }
-        public static Entity ReturnEntity(int uID)
+        public static Entity ReturnEntity(string name)
         {
-            string pullData = File.ReadAllText(Path.Combine(entityPath, "Entity-" + uID + ".json"));
+            string pullData = File.ReadAllText(Path.Combine(entityPath, name + ".json"));
             return new Entity(JsonConvert.DeserializeObject<Entity>(pullData, options));
         }
-        public static void SaveEntity(Entity entity)
+        public static void SaveEntity(Entity entity, string name)
         {
             entity.ClearImbeddedComponents();
             if (!Directory.Exists(entityPath)) Directory.CreateDirectory(entityPath);
-            File.WriteAllText(Path.Combine(entityPath, "Entity-" + entity.GetComponent<ID>().id + ".json"), JsonConvert.SerializeObject(entity, options));
+            File.WriteAllText(Path.Combine(entityPath, name + ".json"), JsonConvert.SerializeObject(entity, options));
         }
         public static void SaveTable(SpawnTable table)
         {

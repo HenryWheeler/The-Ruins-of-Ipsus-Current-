@@ -33,13 +33,13 @@ namespace The_Ruins_of_Ipsus
                         {
                             new Vector2(target.x, target.y),
                             new Draw("Yellow", "Black", 'X'),
-                            new ParticleComponent(time, 2, "None", 0, new Draw[] { new Draw("Yellow", "Black", 'X'), new Draw("Black", "Black", 'X') }),
+                            new ParticleComponent(time, "None", 0, new Draw[] { new Draw("Yellow", "Black", 'X'), new Draw("Black", "Black", 'X') }),
                         }),
                     new Entity(new List<Component>
                         {
                             new Vector2(vector2.x, vector2.y),
                             weapon.GetComponent<Draw>(),
-                            new ParticleComponent(time, 2, "Target", 0, new Draw[] { weapon.GetComponent<Draw>() }, target, true),
+                            new ParticleComponent(time, "Target", 0, new Draw[] { weapon.GetComponent<Draw>() }, target),
                         })
                 });
 
@@ -47,7 +47,9 @@ namespace The_Ruins_of_Ipsus
                 {
                     InventoryManager.UnequipItem(attacker, weapon);
                 }
+
                 PronounSet pronounSet = attacker.GetComponent<PronounSet>();
+
                 if (weapon.GetComponent<Throwable>() != null)
                 {
                     weapon.GetComponent<Throwable>().Throw(attacker, target);
@@ -57,11 +59,11 @@ namespace The_Ruins_of_Ipsus
                     }
                     if (pronounSet.present)
                     {
-                        Log.AddToStoredLog($"{attacker.GetComponent<Description>().name} has thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}! {weapon.GetComponent<Throwable>().throwMessage}");
+                        Log.Add($"{attacker.GetComponent<Description>().name} has thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}! {weapon.GetComponent<Throwable>().throwMessage}");
                     }
                     else
                     {
-                        Log.AddToStoredLog($"{attacker.GetComponent<Description>().name} have thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}! {weapon.GetComponent<Throwable>().throwMessage}");
+                        Log.Add($"{attacker.GetComponent<Description>().name} have thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}! {weapon.GetComponent<Throwable>().throwMessage}");
                     }
                 }
                 else
@@ -69,11 +71,11 @@ namespace The_Ruins_of_Ipsus
                     InventoryManager.PlaceItem(target, weapon);
                     if (pronounSet.present)
                     {
-                        Log.AddToStoredLog($"{attacker.GetComponent<Description>().name} has thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}!");
+                        Log.Add($"{attacker.GetComponent<Description>().name} has thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}!");
                     }
                     else
                     {
-                        Log.AddToStoredLog($"{attacker.GetComponent<Description>().name} have thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}!");
+                        Log.Add($"{attacker.GetComponent<Description>().name} have thrown {pronounSet.possesive} {weapon.GetComponent<Description>().name}!");
                     }
                 }
                 if (World.tiles[target.x, target.y].actorLayer != null)
@@ -115,8 +117,6 @@ namespace The_Ruins_of_Ipsus
                         }
                         dmg += attackFunction.damageModifier;
 
-                        TriggerOnHit(attackFunction, attacker, target, dmg, attackFunction.dmgType);
-
                         if (target.GetComponent<Stats>().weaknesses.Contains(attackFunction.dmgType))
                         {
                             if (attacker.GetComponent<PlayerComponent>() != null)
@@ -124,10 +124,12 @@ namespace The_Ruins_of_Ipsus
                                 Log.Add($"Your {weapon.GetComponent<Description>().name} deals the {target.GetComponent<Description>().name} major harm! The {target.GetComponent<Description>().name} is weak to {attackFunction.dmgType}!");
                             }
                             target.GetComponent<Harmable>().Hit(dmg * 2, attackFunction.dmgType, weapon.GetComponent<Description>().name, attacker);
+                            TriggerOnHit(attackFunction, attacker, target, dmg * 2, attackFunction.dmgType);
                         }
                         else
                         {
                             target.GetComponent<Harmable>().Hit(dmg, attackFunction.dmgType, weapon.GetComponent<Description>().name, attacker);
+                            TriggerOnHit(attackFunction, attacker, target, dmg, attackFunction.dmgType);
                         }
                     }
                 }
@@ -175,10 +177,12 @@ namespace The_Ruins_of_Ipsus
                                 Log.Add($"Your {attackName} deals the {target.GetComponent<Description>().name} major harm! The {target.GetComponent<Description>().name} is weak to {attackFunction.dmgType}!");
                             }
                             target.GetComponent<Harmable>().Hit(dmg * 2, attackFunction.dmgType, attackName, attacker);
+                            TriggerOnHit(attackFunction, attacker, target, dmg * 2, attackFunction.dmgType);
                         }
                         else
                         {
                             target.GetComponent<Harmable>().Hit(dmg, attackFunction.dmgType, attackName, attacker);
+                            TriggerOnHit(attackFunction, attacker, target, dmg, attackFunction.dmgType);
                         }
                     }
                 }

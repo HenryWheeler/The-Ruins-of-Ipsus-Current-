@@ -227,17 +227,22 @@ namespace The_Ruins_of_Ipsus
             {
                 if (coordinate != null && CMath.CheckBounds(coordinate.x, coordinate.y))
                 {
-                    //coordinates.Add(coordinate);
-
+                    if (!coordinates.Contains(coordinate))
+                    {
+                        coordinates.Add(coordinate);
+                    }
                     foreach (Vector2 coordinate2 in ReturnLine(startingPoint, coordinate, true))
                     {
                         if (coordinate2 != null && CMath.CheckBounds(coordinate2.x, coordinate2.y))
                         {
-                            coordinates.Add(coordinate2);
+                            if (!coordinates.Contains(coordinate2))
+                            {
+                                coordinates.Add(coordinate2);
+                            }
 
                             foreach (Vector2 coordinate3 in ReturnLine(coordinate2, coordinate))
                             {
-                                if (coordinate3 != null && CMath.CheckBounds(coordinate3.x, coordinate3.y))
+                                if (coordinate3 != null && CMath.CheckBounds(coordinate3.x, coordinate3.y) && !coordinates.Contains(coordinate3))
                                 {
                                     coordinates.Add(coordinate3);
                                 }

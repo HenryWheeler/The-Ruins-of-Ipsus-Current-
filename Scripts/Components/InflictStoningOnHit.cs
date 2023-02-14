@@ -13,8 +13,8 @@ namespace The_Ruins_of_Ipsus
                 if (World.random.Next(1, 21) + strength > 10 + target.GetComponent<Stats>().strength)
                 {
                     target.AddComponent(new Stoning());
-                    if (target.GetComponent<PronounSet>().present) { Log.AddToStoredLog(target.GetComponent<Description>().name + " has begun to turn to Gray*stone"); }
-                    else { Log.AddToStoredLog(target.GetComponent<Description>().name + " have begun to turn to Gray*stone"); }
+                    if (target.GetComponent<PronounSet>().present) { Log.Add(target.GetComponent<Description>().name + " has begun to turn to Gray*stone"); }
+                    else { Log.Add(target.GetComponent<Description>().name + " have begun to turn to Gray*stone"); }
                     target.GetComponent<Harmable>().statusEffects.Add("Gray*Stoned");
                 }
             }

@@ -4,6 +4,7 @@ namespace The_Ruins_of_Ipsus
 {
     public abstract class AGenerator
     {
+        public List<Vector2> viableTiles = new List<Vector2>();
         public int mapWidth;
         public int mapHeight;
         public int startX;
@@ -12,6 +13,67 @@ namespace The_Ruins_of_Ipsus
         public abstract void CreateBezierCurve(int r0x, int r0y, int r2x, int r2y);
         public abstract void CreateStraightPassage(int r1x, int r1y, int r2x, int r2y);
         public abstract void SetAllWalls();
+        public void PopulateFloor()
+        {
+            int actorsToSpawn = World.seed.Next(8, 15) + World.difficulty;
+            int itemsToSpawn = World.seed.Next(6, 10);
+            int obstaclesToSpawn = World.seed.Next(10, 20);
+
+            for (int i = 0; i < actorsToSpawn; i++)
+            {
+                Vector2 targetLocation = null;
+
+                do
+                {
+                    Vector2 testLocation = new Vector2(World.seed.Next(1, World.mapWidth), World.seed.Next(1, World.mapHeight));
+
+                    if (viableTiles.Contains(testLocation) && World.tiles[testLocation.x, testLocation.y].actorLayer == null)
+                    {
+                        targetLocation = testLocation;
+                    }
+
+                } while (targetLocation == null);
+
+                EntityManager.CreateEntityFromFile(targetLocation,
+                    SpawnTableManager.RetrieveRandomEntity($"{World.floorType}_{World.difficulty}", 1, true), true);
+            }
+            for (int i = 0; i < itemsToSpawn; i++)
+            {
+                Vector2 targetLocation = null;
+
+                do
+                {
+                    Vector2 testLocation = new Vector2(World.seed.Next(1, World.mapWidth), World.seed.Next(1, World.mapHeight));
+
+                    if (viableTiles.Contains(testLocation) && World.tiles[testLocation.x, testLocation.y].itemLayer == null)
+                    {
+                        targetLocation = testLocation;
+                    }
+
+                } while (targetLocation == null);
+
+                EntityManager.CreateEntityFromFile(targetLocation,
+                    SpawnTableManager.RetrieveRandomEntity($"Item_Table", World.difficulty, true), true);
+            }
+            for (int i = 0; i < obstaclesToSpawn; i++)
+            {
+                Vector2 targetLocation = null;
+
+                do
+                {
+                    Vector2 testLocation = new Vector2(World.seed.Next(1, World.mapWidth), World.seed.Next(1, World.mapHeight));
+
+                    if (viableTiles.Contains(testLocation) && World.tiles[testLocation.x, testLocation.y].obstacleLayer == null)
+                    {
+                        targetLocation = testLocation;
+                    }
+
+                } while (targetLocation == null);
+
+                EntityManager.CreateEntityFromFile(targetLocation,
+                    SpawnTableManager.RetrieveRandomEntity($"Obstacle_Table", World.difficulty, true), true);
+            }
+        }
         public void CreatePatrolLocations()
         {
             List<Entity> tiles = new List<Entity>();
@@ -168,7 +230,7 @@ namespace The_Ruins_of_Ipsus
         public void CreateStairs()
         {
             List<Entity> tiles = new List<Entity>();
-            foreach (Traversable tile in World.tiles) { if (tile != null && tile.terrainType == 1) { tiles.Add(tile.entity); } }
+            foreach (Traversable tile in World.tiles) { if (tile != null && tile.terrainType == 1 && tile.obstacleLayer == null) { tiles.Add(tile.entity); } }
             Entity upStair = tiles[World.seed.Next(0, tiles.Count - 1)];
             tiles.Remove(upStair);
             Entity downStair = tiles[World.seed.Next(0, tiles.Count - 1)];

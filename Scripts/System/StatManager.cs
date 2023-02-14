@@ -10,16 +10,14 @@ namespace The_Ruins_of_Ipsus
 {
     public class StatManager
     {
-        public static TitleConsole console;
         private static string spacer { get; set; }
-        public StatManager(TitleConsole _console)
+        public StatManager()
         {
-            console = _console;
             spacer = " + ";
         }
         public static void UpdateStats(Entity entity)
         {
-            console.Clear();
+            Program.playerConsole.Clear();
 
             Stats stats = entity.GetComponent<Stats>();
 
@@ -32,7 +30,7 @@ namespace The_Ruins_of_Ipsus
             display += $"Cyan*Acuity: {stats.acuity}{spacer}";
             display += $"Sight: {stats.sight}{spacer}";
 
-            display += $"Status:{spacer}";
+            display += $"Status: {spacer}";
             for (int i = 0; i < entity.GetComponent<Harmable>().statusEffects.Count; i++)
             {
                 if (i == entity.GetComponent<Harmable>().statusEffects.Count - 1)
@@ -45,17 +43,17 @@ namespace The_Ruins_of_Ipsus
                 }
             }
 
-            CMath.DisplayToConsole(console, display, 0, 2, 1);
+            if (World.developerMode)
+            {
+                display += $"Debug Information: {spacer}";
+                display += $"Current Actor Count = {EntityManager.actorCount} {spacer}";
+                display += $"Current Item Count = {EntityManager.itemCount} {spacer}";
+                display += $"Current Obstacle Count = {EntityManager.obstacleCount} {spacer}";
+            }
 
-            CMath.DisplayToConsole(console, $"Open Inventory Yellow*[I] {spacer}Open Equipment Yellow*[E]", 0, 2, 1, 29, false);
+            CMath.DisplayToConsole(Program.playerConsole, display, 0, 2, 1);
 
-            Renderer.CreateConsoleBorder(console, false);
-
-            console.Print(2, 0, $" Stats {(char)196} ", Color.White);
-            console.Print(11, 0, $"Equipment ", Color.Gray);
-            console.Print(21, 0, $"{(char)196}", Color.White);
-            console.Print(22, 0, $" Inventory ", Color.Gray);
-
+            Renderer.CreateConsoleBorder(Program.playerConsole, true);
         }
     }
 }

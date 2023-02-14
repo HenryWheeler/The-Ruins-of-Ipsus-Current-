@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using The_Ruins_of_Ipsus.Scripts.Components.AIComponents;
+using The_Ruins_of_Ipsus.Scripts.JsonDataManagement;
 
 namespace The_Ruins_of_Ipsus
 {
@@ -46,19 +48,20 @@ namespace The_Ruins_of_Ipsus
             {
                 if (tile.terrainType == 1)
                 {
-                    if (World.seed.Next(0, 10000) > 19995)
+                    /*
+                    if (World.seed.Next(0, 10000) > 119995)
                     {
                         TurnFunction function = new TurnFunction();
                         EntityManager.CreateEntity(tile.entity.GetComponent<Vector2>(), new Entity(new List<Component>()
                             {
-                                new ID(1),
+                                new ID("Actor"),
                                 tile.entity.GetComponent<Vector2>(),
                                 new Draw("Red", "Black", (char)(current + 48)),
                                 new Description("Test Entity", "Testing."),
                                 PronounReferences.pronounSets["Nueter"],
                                 new Stats(5, 10, .8f, 5, 0, 0),
                                 function,
-                                new GuardAI(new List<string>() { "Beast" }, new List<string>(), 50),
+                                //new GuardAI(new List<string>() { "Beast" }, new List<string>(), 50),
                                 new PatrolFunction(),
                                 new Movement(new List<int> { 1, 2 }),
                                 new Inventory(),
@@ -70,19 +73,19 @@ namespace The_Ruins_of_Ipsus
                         {
                             current = 0;
                         }
-                    } else if (World.seed.Next(0, 15000) > 14997)
+                    } else if (World.seed.Next(0, 15000) > 114980)
                     {
                         TurnFunction function = new TurnFunction();
                         EntityManager.CreateEntity(tile.entity.GetComponent<Vector2>(), new Entity(new List<Component>()
                             {
-                                new ID(1),
+                                new ID("Actor"),
                                 tile.entity.GetComponent<Vector2>(),
                                 new Draw("Red", "Black", 'D'),
                                 new Description("Red*Red Red*Dragon", "A terrifying sight, the hulking form of one of the ancient tyrant drakes stands before you. Smoke billowing out of every nostril the ancient Red*Red Red*Dragon is a fearsome foe indeed."),
                                 PronounReferences.pronounSets["Nueter"],
                                 new Stats(10, 18, .8f, 50, 4, 4),
                                 function,
-                                new DragonAI(new List<string>() { "Beast" }, new List<string>() { "Player" }, 150, 0, 0, 8, 10),
+                                new DragonAI(new List<string>() { "Beast" }, new List<string>() { "Player" }, 70, 0, 0, 8, 10),
                                 new PatrolFunction(),
                                 new Movement(new List<int> { 1, 2 }),
                                 new BreathWeaponOnUse(3, "Fire", 12, false),
@@ -92,7 +95,49 @@ namespace The_Ruins_of_Ipsus
                                 new Faction($"Beast"),
                         }), false, false);
                         TurnManager.AddActor(function);
+                    } else if (World.seed.Next(0, 15000) > 114980)
+                    {
+                        TurnFunction function = new TurnFunction();
+                        EntityManager.CreateEntity(tile.entity.GetComponent<Vector2>(), new Entity(new List<Component>()
+                            {
+                                new ID("Actor"),
+                                tile.entity.GetComponent<Vector2>(),
+                                new Draw("Green", "Black", 'T'),
+                                new Description("The Whispering Green*Pine", "A giant unnatural Green*pine Green*tree. It almost sounds as if it is talking to you."),
+                                PronounReferences.pronounSets["Nueter"],
+                                new Stats(5, 14, .25f, 50, 3, 2, null, new List<string>() { "Fire" }),
+                                function,
+                                new PlantAI(new List<string>() { "Plant" }, new List<string>() { "Player", "Beast" }, 100, 0, 0, 1, 100),
+                                new PatrolFunction(),
+                                new Movement(new List<int> { 1 }),
+                                new Harmable(),
+                                new Inventory(),
+                                new Faction($"Plant"),
+                        }), false, false);
+                        TurnManager.AddActor(function);
                     }
+                    else if (World.seed.Next(0, 15000) > 14995)
+                    {
+                        TurnFunction function = new TurnFunction();
+                        EntityManager.CreateEntity(tile.entity.GetComponent<Vector2>(), new Entity(new List<Component>()
+                            {
+                                new ID("Actor"),
+                                tile.entity.GetComponent<Vector2>(),
+                                new Draw("Lime", "Black", 's'),
+                                new Description("Splitting Lime*Slime", "An oozing pulsating mass ready to burst into parts at any time."),
+                                PronounReferences.pronounSets["Nueter"],
+                                new Stats(4, 8, .75f, 30, 2, -5, null, new List<string>() { "Fire" }),
+                                function,
+                                new OozelingAI(new List<string>() { "Oozeling" }, new List<string>() { "Player" }, 50, 0, 0, 1, 10),
+                                new Splitting(1, 1),
+                                new Movement(new List<int> { 1 }),
+                                new Harmable(),
+                                new Inventory(),
+                                new Faction($"Oozeling"),
+                        }), false, false);
+                        TurnManager.AddActor(function);
+                    }
+                    */
                 }
             }
         }
@@ -253,8 +298,8 @@ namespace The_Ruins_of_Ipsus
             }
             if (doorSpots.Count != 0)
             {
-                EntityManager.CreateEntity(doorSpots[0], JsonDataManager.ReturnEntity(2001), false, false);
-                EntityManager.CreateEntity(doorSpots[doorSpots.Count - 1], JsonDataManager.ReturnEntity(2001), false, false);
+                EntityManager.CreateEntity(doorSpots[0], JsonDataManager.ReturnEntity("Door"), false, false);
+                EntityManager.CreateEntity(doorSpots[doorSpots.Count - 1], JsonDataManager.ReturnEntity("Door"), false, false);
             }
         }
     }

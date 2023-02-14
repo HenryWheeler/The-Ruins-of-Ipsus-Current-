@@ -34,7 +34,11 @@ namespace The_Ruins_of_Ipsus
             {
                 TurnManager.ProgressTurnOrder();
             }
-            entity.ClearCollections();
+
+            if (entity != null)
+            {
+                entity.ClearCollections();
+            }
 
             Renderer.DrawMapToScreen();
         }

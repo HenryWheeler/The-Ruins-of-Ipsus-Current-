@@ -16,6 +16,9 @@ namespace The_Ruins_of_Ipsus
             position = new Vector2(coordinate.x, coordinate.y);
             looking = true;
             player.GetComponent<TurnFunction>().turnActive = false;
+            Program.playerConsole.Clear();
+            Program.lookConsole.Clear();
+            Program.rootConsole.Children.MoveToTop(Program.lookConsole);
             Move(0, 0);
         }
         public static void StopLooking()
@@ -23,7 +26,13 @@ namespace The_Ruins_of_Ipsus
             player.GetComponent<TurnFunction>().turnActive = true;
             Renderer.MoveCamera(player.GetComponent<Vector2>());
             looking = false;
+
+            Program.playerConsole.Clear();
+            Program.lookConsole.Clear();
+            Program.rootConsole.Children.MoveToTop(Program.playerConsole);
+            Program.rootConsole.Children.MoveToTop(Program.mapConsole);
             StatManager.UpdateStats(player);
+            Log.DisplayLog();
             World.ClearSFX();
             Renderer.DrawMapToScreen();
         }
@@ -31,15 +40,24 @@ namespace The_Ruins_of_Ipsus
         {
             if (CMath.CheckBounds(position.x + _x, position.y + _y))
             {
+                //Change position of reticle and clear all SFX/LookConsole.
                 World.ClearSFX();
-
+                Program.lookConsole.Clear();
                 position.x += _x; position.y += _y;
 
+                //Display description of object player is looking at, if object cannot be seen produce a message.
                 Traversable traversable = World.tiles[position.x, position.y];
                 Description description = null;
+                string health = "";
+
                 if (!World.tiles[position.x, position.y].entity.GetComponent<Visibility>().visible)
                 {
-                    CMath.DisplayToConsole(Program.playerConsole, "You cannot look at what you cannot see.", 1, 1);
+                    Program.lookConsole.Fill(Color.AntiqueWhite, Color.Black, 177);
+                    Program.lookConsole.Print(0, Program.lookConsole.Height / 2 - 3, " You cannot look at ".Align(HorizontalAlignment.Center, Program.lookConsole.Width, (char)177), Color.AntiqueWhite);
+                    Program.lookConsole.Print(0, Program.lookConsole.Height / 2 - 1, " what you cannot see. ".Align(HorizontalAlignment.Center, Program.lookConsole.Width, (char)177), Color.AntiqueWhite);
+                    Program.lookConsole.DrawBox(new Rectangle(1, 1, Program.lookConsole.Width - 2, Program.lookConsole.Height - 2),
+                        ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+
                 }
                 else if (traversable.actorLayer != null)
                 {
@@ -59,64 +77,61 @@ namespace The_Ruins_of_Ipsus
                 }
                 if (description != null)
                 {
-                    string display = "";
 
                     if (description.entity != null && description.entity.GetComponent<PronounSet>() != null)
                     {
                         if (description.entity.GetComponent<PronounSet>().present)
                         {
-                            display += $"{description.description} + + {description.name} is: + ";
+                            health += $"{description.name} is: + ";
                         }
                         else
                         {
-                            display += $"{description.description} + + {description.name} are: + ";
+                            health += $"{description.name} are: + ";
                         }
 
-                        string compare = display;
                         if (CMath.ReturnAI(description.entity) != null)
                         {
-                            display += $"{CMath.ReturnAI(description.entity).currentState}, ";
+                            health += $"{CMath.ReturnAI(description.entity).currentState}, ";
 
                             if (description.entity.GetComponent<Harmable>().statusEffects.Count == 0)
                             {
-                                display += "and ";
+                                health += "and ";
                             }
                         }
 
                         Stats stats = description.entity.GetComponent<Stats>();
 
-                        if (stats.hp == stats.hpCap) { display += "Green*Uninjured"; }
-                        else if (stats.hp <= stats.hpCap && stats.hp >= stats.hpCap / 2) { display += "Yellow*Hurt"; }
-                        else { display += "Red*Badly Red*Hurt"; }
+                        if (stats.hp == stats.hpCap) { health += "Green*Uninjured"; }
+                        else if (stats.hp <= stats.hpCap && stats.hp >= stats.hpCap / 2) { health += "Yellow*Hurt"; }
+                        else { health += "Red*Badly Red*Hurt"; }
 
                         if (description.entity.GetComponent<Harmable>().statusEffects.Count == 0)
                         {
-                            display += ".";
+                            health += ".";
                         }
                         else
                         {
-                            display += ", + ";
+                            health += ", + ";
                         }
 
                         for (int i = 0; i < description.entity.GetComponent<Harmable>().statusEffects.Count; i++)
                         {
                             if (i == description.entity.GetComponent<Harmable>().statusEffects.Count - 1)
                             {
-                                display += $"and {description.entity.GetComponent<Harmable>().statusEffects[i]}. + ";
+                                health += $"and {description.entity.GetComponent<Harmable>().statusEffects[i]}. + ";
                             }
                             else
                             {
-                                display += $"{description.entity.GetComponent<Harmable>().statusEffects[i]}, ";
+                                health += $"{description.entity.GetComponent<Harmable>().statusEffects[i]}, ";
                             }
                         }
-
-                        if (display == compare)
-                        {
-                            display = description.description;
-                        }
                     }
-                    else { display += description.description; }
-                    CMath.DisplayToConsole(Program.playerConsole, display, 1, 1);
+
+
+                    //Create boxes to surround look menu, and display information.
+                    Program.lookConsole.DrawBox(new Rectangle(1, 1, Program.lookConsole.Width - 2, 5),
+                        ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+
                     string[] nameParts = description.name.Split(' ');
                     string name = "";
                     foreach (string part in nameParts)
@@ -131,9 +146,7 @@ namespace The_Ruins_of_Ipsus
                             name += temp[1] + " ";
                         }
                     }
-                    int start = 17 - (int)Math.Ceiling((double)name.Length / 2);
-
-                    Program.playerConsole.Print(start, 0, " ", Color.White);
+                    int start = (Program.lookConsole.Width / 2) - (int)Math.Ceiling((double)name.Length / 2);
 
                     start++;
 
@@ -142,15 +155,34 @@ namespace The_Ruins_of_Ipsus
                         string[] temp = part.Split('*');
                         if (temp.Length == 1)
                         {
-                            Program.playerConsole.Print(start, 0, temp[0] + " ", Color.White);
+                            Program.lookConsole.Print(start, 3, temp[0] + " ", Color.White);
                             start += temp[0].Length + 1;
                         }
                         else
                         {
-                            Program.playerConsole.Print(start, 0, temp[1] + " ", ColorFinder.ColorPicker(temp[0]), Color.Black);
+                            Program.lookConsole.Print(start, 3, temp[1] + " ", ColorFinder.ColorPicker(temp[0]), Color.Black);
                             start += temp[1].Length + 1;
                         }
                     }
+                    if (health == "")
+                    {
+                        Program.lookConsole.DrawBox(new Rectangle(1, 6, Program.lookConsole.Width - 2, Program.lookConsole.Height - 7),
+                            ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+                        CMath.DisplayToConsole(Program.lookConsole, $"{description.description}", 2, 1, 0, 8, false);
+                    }
+                    else if (health != "")
+                    {
+                        int difference = CMath.DisplayToConsole(Program.lookConsole, $"{health}", 2, 1, 0, 8, false);
+
+                        Program.lookConsole.DrawBox(new Rectangle(1, 6, Program.lookConsole.Width - 2, difference),
+                            ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+
+                        int difference2 = CMath.DisplayToConsole(Program.lookConsole, $"{description.description}", 2, 1, 0, 8 + difference, false);
+
+                        Program.lookConsole.DrawBox(new Rectangle(1, 6 + difference, Program.lookConsole.Width - 2, Program.lookConsole.Height - (7 + difference)),
+                            ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.Yellow, Color.Black)));
+                    }
+
                     World.sfx[position.x, position.y] = new Draw("Yellow", "Black", 'X');
                 }
                 else
@@ -159,11 +191,7 @@ namespace The_Ruins_of_Ipsus
                 }
             }
 
-
-
-            CMath.DisplayToConsole(Program.playerConsole, $"Move Reticle Yellow*[Arrow Yellow*Keys]", 0, 2, 1, 29, false);
-            CMath.DisplayToConsole(Program.playerConsole, $"Cancel Look Yellow*[L/Escape]", 0, 2, 1, 32, false);
-
+            Renderer.CreateConsoleBorder(Program.lookConsole);
             Renderer.MoveCamera(new Vector2(position.x, position.y));
             Renderer.DrawMapToScreen();
             Program.rootConsole.IsDirty = true;

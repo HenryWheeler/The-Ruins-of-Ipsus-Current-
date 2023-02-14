@@ -73,15 +73,7 @@ namespace The_Ruins_of_Ipsus
                         ParticleComponent particle = particles[i];
                         if (particle != null)
                         {
-                            switch (particle.speed)
-                            {
-                                case 1: { if (current == 1) { break; } else { continue; } }
-                                case 2: { if (current == 2 || current == 7) { break; } else { continue; } }
-                                case 3: { if (current == 3 || current == 6 || current == 9) { break; } else { continue; } }
-                                case 4: { if (current == 2 || current == 4 || current == 6 || current == 8 || current == 10) { break; } else { continue; } }
-                                case 5: { break; }
-                            }
-                            particle.Progress();
+
                         }
                     }
                     DrawMapToScreen();
@@ -231,8 +223,9 @@ namespace The_Ruins_of_Ipsus
                 ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, new ColoredGlyph(Color.AntiqueWhite, Color.Black)));
             if (includeTitle)
             {
-                console.Print(0, 0, console.title.Align(HorizontalAlignment.Center, console.Width, '-'), Color.Black, Color.White);
+                console.Print(0, 0, console.title.Align(HorizontalAlignment.Center, console.Width, (char)196), Color.Black, Color.AntiqueWhite);
             }
+            console.IsDirty = true;
         }
     }
 }
